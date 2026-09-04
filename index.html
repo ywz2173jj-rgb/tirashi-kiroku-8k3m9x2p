@@ -76099,6 +76099,30 @@ function parseKml(text){
   return res;
 }
 // 合わせた線に応じて、札の中身と縁の色を決める
+
+/* 指でも確実に触れるように、見える線の上に「触りしろ」の透明な太線を重ねます。
+   経路は4px、輪の点線は2px。指の腹はおよそ40pxありますので、そのままでは当たりません。
+   触りしろは見た目に出ませんが、触れる・押すはこちらが受け取り、
+   見える線が動いたり消えたりすれば、同じように動きます。 */
+const COARSE = !!(window.matchMedia && matchMedia('(pointer:coarse)').matches);
+const HITW = COARSE ? 30 : 12;                 // 指なら太く、マウスなら控えめに
+function withHit(line, map){
+  const hit = L.polyline(line.getLatLngs(),
+    {color:'#000', opacity:0, weight:HITW, lineCap:'round', lineJoin:'round', fill:false})
+    .addTo(map);
+  line.__hit = hit;
+  const s=line.setLatLngs.bind(line);    line.setLatLngs   = v =>{ hit.setLatLngs(v); return s(v); };
+  const r=line.remove.bind(line);        line.remove       = ()=>{ hit.remove();      return r(); };
+  const a=line.addTo.bind(line);         line.addTo        = m =>{ hit.addTo(m); const x=a(m); hit.bringToFront(); return x; };
+  const b=line.bindTooltip.bind(line);   line.bindTooltip  = (c,o)=>{ hit.bindTooltip(c,o); return b(c,o); };
+  const u=line.unbindTooltip.bind(line); line.unbindTooltip= ()=>{ hit.unbindTooltip(); return u(); };
+  const o=line.on.bind(line);            line.on           = (e,f)=>{ hit.on(e,f);    return o(e,f); };
+  const f=line.bringToFront.bind(line);  line.bringToFront = ()=>{ const x=f(); hit.bringToFront(); return x; };
+  // 指の画面では、触れた（押した）ところで内容を出します
+  if(COARSE) hit.on('click', ev=>{ if(hit.getTooltip && hit.getTooltip()) hit.openTooltip(ev.latlng); });
+  hit.bringToFront();
+  return line;
+}
 function bindHover(line){
   line.bindTooltip(layer=>{
     const me=tracks.find(x=>x.line===layer);
@@ -76122,9 +76146,9 @@ function addTracks(list){
     const nm=t.name||(list.length>1?`経路 ${i+1}`:'徒歩軌跡');
     const area=/（住所の目安[^）]*）\s*$/.test(nm);
     const mr=nm.match(/半径\s*(\d{2,4})\s*m/);
-    const line=L.polyline(t.pts.map(p=>[p[0],p[1]]),
+    const line=withHit(L.polyline(t.pts.map(p=>[p[0],p[1]]),
       area?{color:AREA,weight:2,opacity:.95,dashArray:'2 4',lineCap:'round',fill:false}
-          :{color:TRACK,weight:4,opacity:.95}).addTo(map);
+          :{color:TRACK,weight:4,opacity:.95}).addTo(map), map);
     bindHover(line);
     tracks.push({id:++tid,name:nm,grp:t.grp||'',kind:area?'area':'route',r:mr?+mr[1]:null,
                  pts:t.pts,line,on:true,s:shape(t.pts)});
