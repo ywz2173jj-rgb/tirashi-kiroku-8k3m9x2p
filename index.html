@@ -179,6 +179,27 @@ dialog#pop::backdrop{background:rgba(26,33,28,.45)}
 .row.none{background:#FAFAF8}
 .row .nm.plain{cursor:default;color:var(--muted)}
 .km.nomap{color:var(--alert);font-weight:600}
+
+/* 指で押す画面（スマホ・タブレット）のときだけ、押しどころを大きくします。
+   幅ではなく「指かマウスか」で切り替えます。幅の広いタブレットも指で押しますし、
+   幅の狭いPCの窓はマウスで押すためです。マウスの機械には効きません。 */
+@media (pointer:coarse){
+  button, .mini, .chip, input[type=text], input[type=number], input[type=date], select{
+    min-height:44px;
+  }
+  input[type=text], input[type=number], input[type=date], select{
+    font-size:16px;                 /* 16px未満だと、押したとき画面が勝手に拡大します */
+    padding-top:8px; padding-bottom:8px;
+  }
+  button, .mini, .chip{ padding-top:10px; padding-bottom:10px; }
+  input[type=range]{ height:44px; }
+  input[type=range]::-webkit-slider-thumb{ width:26px; height:26px; }
+  input[type=range]::-moz-range-thumb{ width:26px; height:26px; }
+  input[type=checkbox]{ width:24px; height:24px; }
+  input[type=file]{ min-height:44px; font-size:16px; }
+  .row, .frow{ padding-top:4px; padding-bottom:4px; }
+  td, th{ padding-top:10px; padding-bottom:10px; }   /* 行を押しやすく */
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -187,7 +208,7 @@ dialog#pop::backdrop{background:rgba(26,33,28,.45)}
 
 <header class="cover">
   <h1>徒歩軌跡 まとめ</h1>
-  <p>国土地理院の地図に経路を重ねた記録です。2026-09-04に保存・146本・合計 545.84 km・住所の目安 37件。　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
+  <p>国土地理院の地図に経路を重ねた記録です。2026-09-05に保存・146本・合計 545.84 km・住所の目安 37件。　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
 </header>
 
 <div id="map"></div>
@@ -75568,7 +75589,7 @@ dialog#pop::backdrop{background:rgba(26,33,28,.45)}
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.657493,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260904","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["西ふれあい","西ふれあいセンター"],["備前市民","備前市民センター"],["瀬戸内市","瀬戸内市文化センター"],["備前市市民","備前市市民センター"],["笠岡市保健","笠岡市保健センター"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.025775,135.59967],"zoom":8,"file":"徒歩軌跡 まとめ_20260905","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["西ふれあい","西ふれあいセンター"],["備前市民","備前市民センター"],["瀬戸内市","瀬戸内市文化センター"],["備前市市民","備前市市民センター"],["笠岡市保健","笠岡市保健センター"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -75609,11 +75630,13 @@ function mk(s,op){
 }
 let baseName=BASES[V.base]?V.base:'標準';
 let overName=(V.over in OVERS)?V.over:'なし';
-const venueOnly=!!V.venueOnly;                 // 会場のみで保存されたものかどうか
-// 会場のみの共有版では、書き出しの口（エクセル用・KML）を置きません。
+const venueOnly=!!V.venueOnly;                 // 共有版として保存されたものかどうか
+// 共有版ではKMLの書き出しだけ外します（緯度経度がそのまま出るため）。
 // 取り除くのは、押し所を結び終えたあと（起動の所）にします
 function hideSaves(){
-  ['tCsv','kmlBtn'].forEach(id=>{
+  // 共有版で外すのは KML だけ。エクセル用は残します
+  //   （記録そのものが姓だけになっているので、書き出しても姓しか出ません）
+  ['kmlBtn'].forEach(id=>{
     const el=document.getElementById(id);
     if(el&&el.parentNode) el.parentNode.removeChild(el);
   });
@@ -76842,10 +76865,7 @@ function tallyNow(){
      +box('倉敷',pick('倉敷').length,sum('倉敷'),kmOf('倉敷'))
      +box('合計',rows.length,sum('岡山')+sum('倉敷'),kmOf('岡山')+kmOf('倉敷'))
      +`<div><dt>期間</dt><dd>${a?nd(md(a)):'最初'}〜${b?nd(md(b)):'最後'}</dd></div>`;
-  if(venueOnly){                         // 会場のみで保存したものは、氏名の表を出しません
-    const el=document.getElementById('tPpl');
-    if(el){ el.innerHTML=''; el.style.display='none'; }
-  }else drawPeople(rows);
+  drawPeople(rows);                      // 共有版でも氏名の表を出します（姓だけなので隠す理由がありません）
   drawVenues(rows);
   const seen=new Map(); let dup=0;
   for(const r of rows){
@@ -76876,11 +76896,15 @@ function xlsxLen(v){
 }
 // 一列ぶんの幅を、その列でいちばん長い字に合わせる
 function xlsxWidths(aoa,max){
+  // 表題や案内のように、一つの升にだけ長い文が入っている行は、幅の計算から外します。
+  // 入れると、その列だけ極端に広がって表が読みにくくなるためです。
+  const body=aoa.filter(r=>r&&r.filter(v=>v!=null&&v!=='').length>1);
+  const use=body.length?body:aoa;
   const w=[];
   for(let c=0;c<max;c++){
     let n=4;
-    for(const row of aoa) if(row&&row[c]!=null) n=Math.max(n,xlsxLen(row[c]));
-    w.push(Math.min(Math.max(n*1.18+2.4,6),70));          // 少し余白を足し、広すぎは抑える
+    for(const row of use) if(row&&row[c]!=null) n=Math.max(n,xlsxLen(row[c]));
+    w.push(Math.min(Math.max(n*1.18+2.4,6),40));          // 少し余白を足し、広すぎは抑える
   }
   return w;
 }
@@ -76958,15 +76982,27 @@ function zipStore(files){
   return out;
 }
 // 表（行の配列）をエクセルの書類にして保存する
-function saveXlsx(aoa,name,sheetName){
-  const sn=String(sheetName||'集計').replace(/[\\\/\?\*\[\]:]/g,'').slice(0,31)||'集計';
+function saveXlsx(sheets,name){
+  // sheets は [{name, aoa}, …]。表ごとに一枚ずつシートを作ります。
+  // 一枚に縦積みしないのは、列の意味が表ごとに違い、幅を一組しか持てないためです。
+  const list=(Array.isArray(sheets)?sheets:[{name:'集計',aoa:sheets}])
+    .filter(x=>x&&x.aoa&&x.aoa.length);
+  if(!list.length) return;
+  const used=new Set();
+  list.forEach((x,i)=>{                                   // シート名の決まり（31字・記号不可・重複不可）
+    let n=String(x.name||('表'+(i+1))).replace(/[\\\/\?\*\[\]:]/g,'').slice(0,31)||('表'+(i+1));
+    let base=n, k=2;
+    while(used.has(n)){ n=(base.slice(0,28)+'('+k+')'); k++; }
+    used.add(n); x.sn=n;
+  });
+  const N=list.length;
   const files=[
     {name:'[Content_Types].xml', text:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       +'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
       +'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
       +'<Default Extension="xml" ContentType="application/xml"/>'
       +'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
-      +'<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+      +list.map((x,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')
       +'</Types>'},
     {name:'_rels/.rels', text:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
@@ -76975,13 +77011,14 @@ function saveXlsx(aoa,name,sheetName){
     {name:'xl/workbook.xml', text:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       +'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
       +'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-      +`<sheets><sheet name="${xlsxEsc(sn)}" sheetId="1" r:id="rId1"/></sheets></workbook>`},
+      +'<sheets>'
+      +list.map((x,i)=>`<sheet name="${xlsxEsc(x.sn)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')
+      +'</sheets></workbook>'},
     {name:'xl/_rels/workbook.xml.rels', text:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-      +'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
-      +'</Relationships>'},
-    {name:'xl/worksheets/sheet1.xml', text:xlsxSheet(aoa)}
-  ];
+      +list.map((x,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')
+      +'</Relationships>'}
+  ].concat(list.map((x,i)=>({name:`xl/worksheets/sheet${i+1}.xml`, text:xlsxSheet(x.aoa)})));
   // 保存の口はこの中に持たせます（共有版には save が無いため）
   const blob=new Blob([zipStore(files)],
     {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
@@ -77011,7 +77048,10 @@ function tallyBook(){
       let k=0; for(const g of gs) k+=((g.days&&g.days.length)?g.days.length:1);
       return s+r.sheets*k; },0);
     const real=sum('岡山')+sum('倉敷');
-    if(nobi>real) A.push(['（延べ）','',nobi,'','1枚に行事が二つ以上あるため。会場ごとに数えるとこの数になります']);
+    if(nobi>real){
+      A.push(['（延べ）','',nobi]);
+      A.push(['1枚に行事が二つ以上あるため。会場ごとに数えると、この数になります。']);
+    }
   }
   A.push([]);
   A.push(['氏名','行事会場','行事日','件数','岡山','倉敷','枚数','距離km']);
@@ -77059,10 +77099,10 @@ function tallyBook(){
     }
   }
   A.push(['','','','','','合計',nobiSum,realSum,'','','','','','']);
-  A.push(['','','','','','',
-          '↑ 会場や氏名でまとめるときに使う数（足すと多くなります）',
-          '↑ そのまま足せば実際に配った数','',
-          '1枚に行事が二つ以上','その1枚に載っている行事','','','']);
+  // 案内はA列に一行だけ。列の中に長い文を置くと、その列の幅が引っぱられます
+  A.push(['「枚数（延べ）」は会場や氏名でまとめるときの数（足すと多くなります）。'
+         +'「実配布枚数」はそのまま足せば実際に配った数。'
+         +'「兼用内容」はその1枚に載っている行事です。']);
   A.push([]);
   A.push(['配布の明細']);
   A.push(['配布日','地区','配布場所','氏名','枚数','兼用','兼用内容','距離km','支部・月','種類']);
@@ -77071,12 +77111,33 @@ function tallyBook(){
     A.push([r.md,r.city,r.place,r.who,r.sheets,ky.n>1?'兼用':'',ky.text,
             r.km?n2(r.km):'',r.grp,
             r.kind==='area'?'住所の目安':r.kind==='none'?'地図無し':'経路']);});
-  return {aoa:A, name:`チラシ配布の集計_${a||'最初'}-${b||'最後'}.xlsx`};
+  // 一枚に縦積みせず、表ごとにシートへ分けます。
+  // 列の意味が表ごとに違うので、幅を一組しか持てないと、どの表にも合わなくなります。
+  //   目印は各表の一行目。氏名ごと・行事会場ごとは見出しの並びで見分けます。
+  const marks=[['チラシ配布の集計','地区ごと'],['氏名','氏名ごと'],
+               ['行事会場','行事会場ごと'],['一行一件（表計算用）','一行一件'],
+               ['配布の明細','配布の明細']];
+  const at=marks.map((m,i)=>A.findIndex((r,k)=>{
+    if(!r||r[0]!==m[0]) return false;
+    if(i===1) return r[1]==='行事会場'&&r[2]==='行事日';    // 氏名ごとの見出し行
+    if(i===2) return r[1]==='行事日'&&r[2]==='氏名';        // 行事会場ごとの見出し行
+    return true;
+  }));
+  const sheets=[];
+  for(let i=0;i<marks.length;i++){
+    if(at[i]<0) continue;
+    let end=A.length;
+    for(let j=i+1;j<marks.length;j++) if(at[j]>at[i]){ end=at[j]; break; }
+    const part=A.slice(at[i],end).filter((r,k,arr)=>!(r.length===0&&k===arr.length-1));
+    while(part.length&&part[part.length-1].length===0) part.pop();
+    if(part.length) sheets.push({name:marks[i][1], aoa:part});
+  }
+  return {sheets, aoa:A, name:`チラシ配布の集計_${a||'最初'}-${b||'最後'}.xlsx`};
 }
 function tallyCsv(){
   const bk=tallyBook();
   if(!bk) return;
-  saveXlsx(bk.aoa,bk.name,'チラシ配布の集計');
+  saveXlsx(bk.sheets&&bk.sheets.length?bk.sheets:[{name:'チラシ配布の集計',aoa:bk.aoa}], bk.name);
 }
 ['tFrom','tTo','tAlias'].forEach(id=>document.getElementById(id).addEventListener('input',tallyNow));
 document.getElementById('tAll').addEventListener('click',()=>{
@@ -77119,7 +77180,7 @@ document.getElementById('kmlBtn').addEventListener('click',function(){
 });
 
 /* ---------- 起動 ---------- */
-if(venueOnly) hideSaves();                    // 会場のみの共有版では書き出しの口を外す
+if(venueOnly) hideSaves();                    // 共有版ではKMLだけ外す
 document.getElementById('fitBtn').addEventListener('click',fitChecked);
 document.getElementById('fitBtn').title='チェックの入っている経路が収まるまで地図を拡大します';
 (function(){
