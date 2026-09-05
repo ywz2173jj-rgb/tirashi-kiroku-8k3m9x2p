@@ -12,6 +12,9 @@
   --ink:#1A211C; --paper:#F2F3EE; --grid:#DCE3D7; --cover:#2E4034;
   --track:#E2358C; --area:#1E5FD0; --act:#23694E; --act-dark:#1A5340; --act-tint:#EAF2ED;
   --muted:#6E7770; --rule:#C6CFC2; --alert:#4A5250; --terrain:#2E4034;
+  /* 入力するところの色。出力（読むだけ）と見分けるためのもの。
+     地図と経路のピンクが主役なので、青は少し落ち着かせています。 */
+  --in:#1E50A2; --in-tint:#F2F7FD; --in-edge:#9FBBE4;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --jp:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic Medium","Noto Sans JP",sans-serif;
 }
@@ -141,7 +144,29 @@ button{font-family:var(--jp);font-size:13.5px;cursor:pointer}
   border-top:1px solid var(--act);border-bottom:1px solid var(--act)}
 .ppl tr.w td{background:#FDFEFC;color:var(--muted);font-size:12px}
 /* 開け閉めの三角。大きめにして、カーソルを乗せると黒く反転させる */
-.ppl .dupm{color:#AE1240;font-weight:700;margin-left:2px;font-size:.9em}
+.ppl 
+/* ===== 地図の操作とページの操作の切り替え ===== */
+/* ふだんは地図を止めておき、指でなぞればページが縦に送られます。
+   長押しで地図の操作に入ると、縁が青の太枠になります。 */
+#map{ touch-action: pan-y !important; }
+#map.maplive{
+  touch-action: none !important;
+  border-color: var(--in);
+  box-shadow: 0 0 0 4px var(--in), 0 0 0 6px var(--in-tint);
+}
+/* 地図の操作中は、矢印も青い十字にします */
+#map.maplive, #map.maplive .leaflet-container, #map.maplive .leaflet-interactive{
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='26' height='26'><g stroke='%231E50A2' stroke-width='2'><line x1='13' y1='1' x2='13' y2='25'/><line x1='1' y1='13' x2='25' y2='13'/></g><circle cx='13' cy='13' r='3' fill='none' stroke='%231E50A2' stroke-width='2'/></svg>") 13 13, crosshair;
+}
+#mapMode{
+  position:absolute; right:10px; top:10px; z-index:500; pointer-events:none;
+  font-family:var(--jp); font-size:12px; line-height:1.5; padding:5px 10px;
+  border-radius:2px; background:rgba(255,255,255,.92); border:1px solid var(--in-edge);
+  color:var(--in);
+}
+#map.maplive + #mapMode, .mapwrap.live #mapMode{ background:var(--in); color:#fff; border-color:var(--in); }
+.mapwrap{ position:relative; }
+.dupm{color:#AE1240;font-weight:700;margin-left:2px;font-size:.9em}
 .tri{display:inline-block;width:24px;height:24px;line-height:23px;text-align:center;
   font-size:15px;color:var(--act);background:transparent;border:1px solid transparent;
   border-radius:3px;cursor:pointer;vertical-align:middle;margin-right:5px;
@@ -201,6 +226,25 @@ dialog#pop::backdrop{background:rgba(26,33,28,.45)}
   td, th{ padding-top:10px; padding-bottom:10px; }   /* 行を押しやすく */
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== 入力するところは青でそろえる（出力は従来のまま） ===== */
+textarea, .tally input[type=text], input[type=number],
+.form input, .form select, #ros, #rad, #shName, #tAlias, #tFrom, #tTo{
+  color:var(--in); border-color:var(--in-edge); background:var(--in-tint);
+}
+textarea::placeholder, .tally input::placeholder, input[type=number]::placeholder,
+.form input::placeholder, #shName::placeholder, #tAlias::placeholder{
+  color:#9AB0CC; font-weight:400; opacity:1;
+}
+/* 焦点は枠を太くして知らせます。色だけに頼ると、色の見分けにくい方に伝わりません */
+textarea:focus, .tally input:focus, input[type=number]:focus,
+.form input:focus, #ros:focus, #rad:focus, #shName:focus, #tAlias:focus{
+  outline:2px solid var(--in); outline-offset:1px; border-color:var(--in);
+}
+input[type=range]{ accent-color:var(--in); }
+/* 集計の箱。触れるとその分だけ地図に出ます */
+.tbox{cursor:pointer}
+.tbox:hover, .tbox:focus-visible{background:var(--in-tint); outline:2px solid var(--in); outline-offset:-2px}
 </style>
 </head>
 <body>
@@ -76159,6 +76203,46 @@ function addTracks(list){
   });
   render();
 }
+
+/* 地図の操作は、長押しで入り、長押しで出ます。
+   ふだんは地図を止めておくので、地図の上を指でなぞってもページが縦に送られます。
+   見るだけ（経路や輪に触れて吹き出しを読む）は、切り替えなくてもできます。 */
+let mapLive=false, swallowClick=false;
+const MAPH=['dragging','touchZoom','doubleClickZoom','scrollWheelZoom','boxZoom','keyboard'];
+function setMapLive(on,quiet){
+  mapLive=!!on;
+  MAPH.forEach(h=>{ if(map[h]) mapLive?map[h].enable():map[h].disable(); });
+  const el=map.getContainer();
+  if(el){ el.classList.toggle('maplive',mapLive);
+          if(el.parentElement) el.parentElement.classList.toggle('live',mapLive); }
+  const b=document.getElementById('mapMode');
+  if(b) b.textContent = mapLive ? '地図の操作中（長押しで戻る）' : '長押しで地図を動かせます';
+  if(!quiet&&typeof flash==='function')
+    flash(mapLive ? '地図の操作に切り替えました。もう一度長押しすると、ページの操作に戻ります。'
+                  : 'ページの操作に戻りました。地図を動かすには、地図の中で長押ししてください。');
+}
+(function(){
+  const el=map.getContainer(); if(!el) return;
+  if(el.parentElement) el.parentElement.classList.add('mapwrap');
+  const b=document.createElement('div'); b.id='mapMode';
+  (el.parentElement||document.body).appendChild(b);
+  let timer=null, sx=0, sy=0;
+  const stop=()=>{ if(timer){ clearTimeout(timer); timer=null; } };
+  el.addEventListener('pointerdown',e=>{
+    sx=e.clientX; sy=e.clientY; stop();
+    timer=setTimeout(()=>{ timer=null; swallowClick=true; setMapLive(!mapLive); },600);
+  },{passive:true});
+  el.addEventListener('pointermove',e=>{
+    if(timer&&(Math.abs(e.clientX-sx)>10||Math.abs(e.clientY-sy)>10)) stop();
+  },{passive:true});
+  ['pointerup','pointercancel','pointerleave'].forEach(k=>el.addEventListener(k,stop,{passive:true}));
+  // 切り替えた直後の一回だけ、押した扱いを飲み込みます（吹き出しが同時に開かないように）
+  el.addEventListener('click',e=>{
+    if(swallowClick){ swallowClick=false; e.stopPropagation(); e.preventDefault(); }
+  },true);
+  window.addEventListener('keydown',e=>{ if(e.key==='Escape'&&mapLive) setMapLive(false); });
+  setMapLive(false,true);
+})();
 function fitAll(){
   const on=tracks.filter(t=>t.on);
   const use=on.length?on:tracks;
@@ -76829,6 +76913,46 @@ function goMap(set){
 // 合計行を押したときの動き
 //   地区の欄 … その地区で配ったすべてを映す（もう一度押せば戻す）
 //   ほかの欄 … すべての経路に戻して、地図を全体に合わせる
+
+/* 集計の箱（岡山・倉敷・合計）に触れると、その分だけを地図に出します。
+   マウスを乗せている間は「下見」。外せば元へ戻り、控え（前に戻る）も汚しません。
+   押した／指で触れたときは、これまでどおり setCity() で絞りを残します。 */
+let peekSave=null;
+function peekCity(city){
+  if(peekSave!==null) return;
+  peekSave = pickSet;
+  const rows=tallyRows().filter(r=>inRange(r.key,
+      mmddOf(document.getElementById('tFrom').value),
+      mmddOf(document.getElementById('tTo').value)));
+  const keys=new Set(rows.filter(r=>!city||r.city===city).map(r=>r.key));
+  const set=new Set(tracks.filter(t=>t.on&&t.line&&keys.has(sortKey(t.name))));
+  pickSet = set.size?set:null;
+  applyPick();
+}
+function peekOff(){
+  if(peekSave===null) return;
+  pickSet = peekSave; peekSave=null; applyPick();
+}
+document.addEventListener('mouseover',ev=>{
+  if(COARSE) return;                       // 指の画面では「乗せる」がありません
+  const b=ev.target.closest&&ev.target.closest('.tbox'); if(!b) return;
+  peekCity(b.dataset.c||'');
+});
+document.addEventListener('mouseout',ev=>{
+  const b=ev.target.closest&&ev.target.closest('.tbox'); if(!b) return;
+  peekOff();
+});
+document.addEventListener('click',ev=>{
+  const b=ev.target.closest&&ev.target.closest('.tbox'); if(!b) return;
+  peekSave=null;                            // 下見は捨てて、本番の絞りへ
+  setCity(b.dataset.c||'');
+});
+document.addEventListener('keydown',ev=>{
+  if(ev.key!=='Enter'&&ev.key!==' ') return;
+  const el=document.activeElement;
+  const b=el&&el.closest&&el.closest('.tbox');
+  if(!b) return; ev.preventDefault(); peekSave=null; setCity(b.dataset.c||'');
+});
 function setCity(city){
   if(!city){                             // 件数・枚数・距離＝すべての経路
     remember();
@@ -77232,8 +77356,10 @@ function tallyNow(){
   const pick=t=>rows.filter(r=>r.city===t);
   const sum=t=>pick(t).reduce((s,r)=>s+r.sheets,0);
   const kmOf=t=>pick(t).reduce((s,r)=>s+r.km,0);
-  const box=(t,n,v,km)=>`<div><dt>${t}</dt><dd>${v.toLocaleString()}枚`
-                       +`<small>${n}件・${km.toFixed(2)} km</small></dd></div>`;
+  // 箱に触れると、その分だけを地図に出します（乗せている間だけの下見／押すと残る）
+  const box=(t,n,v,km)=>`<div class="tbox" data-c="${t==='合計'?'':t}" role="button" tabindex="0"`
+                       +` title="${t==='合計'?'すべて':t+'の分'}を地図に映します"><dt>${t}</dt>`
+                       +`<dd>${v.toLocaleString()}枚<small>${n}件・${km.toFixed(2)} km</small></dd></div>`;
   document.getElementById('tOut').innerHTML=
       box('岡山',pick('岡山').length,sum('岡山'),kmOf('岡山'))
      +box('倉敷',pick('倉敷').length,sum('倉敷'),kmOf('倉敷'))
