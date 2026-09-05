@@ -174,6 +174,38 @@ button{font-family:var(--jp);font-size:13.5px;cursor:pointer}
   #map.maplive #mapMode{ background:var(--in); color:#fff; }
 }
 #map{ position:relative; }        /* 釦を地図の中に置くための土台 */
+
+/* 集計の二つの表は、列幅をそろえます（table-layout:fixed ＋ 同じ colgroup）。
+   氏名と行事会場で幅が違うと、上下に並んだとき数字の位置がずれて読みにくくなります。 */
+.ppl{ table-layout:fixed; }
+/* 二つの表で同じ割り当てにします。合計100% */
+.ppl col.c1{width:34%}   /* 氏名／行事会場 */
+.ppl col.c2{width:10%}   /* 件数 */
+.ppl col.c3{width:13%}   /* 岡山 */
+.ppl col.c4{width:13%}   /* 倉敷 */
+.ppl col.c5{width:14%}   /* 枚数 */
+.ppl col.c6{width:16%}   /* 距離km */
+
+/* 集計は高さの決まった箱の中で送ります。画面全体が集計だけになるのを防ぐためです。
+   見出しの帯は箱の上に貼り付き、いつでも一つだけが最上部に見えます。 */
+/* 高さは「見出し＋データ10行」。画面の割合では決めません。
+   画面の高さは機種でまちまちで、同じ割合でも見える行数が変わるためです。
+   実際の高さは fitRows() が測って入れます。 */
+.tscroll{ overflow:auto; border:1px solid var(--rule); border-radius:2px;
+          margin-top:10px; background:#fff; }
+.tscroll .ppl{ margin:0; }
+.ppl caption{ position:sticky; left:0; z-index:2; background:#fff; }
+.ppl thead th{ position:sticky; top:0; z-index:3; background:#F4F6F2;
+               box-shadow:0 1px 0 var(--rule); }
+
+
+/* 集計は「氏名で見る」「行事会場で見る」を札で切り替えます。
+   二つ並べると、氏名の合計（実配布）と会場の合計（延べ）が縦に並び、
+   どちらかが間違いだと読まれるためです。表も見出しの帯も、常に一つ。 */
+.viewsw{ margin-top:10px }
+.viewsw .chip{ font-weight:600 }
+.viewsw .chip.on{ background:var(--in); color:#fff; border-color:var(--in) }
+#swNote{ color:var(--muted) }
 .dupm{color:#AE1240;font-weight:700;margin-left:2px;font-size:.9em}
 .tri{display:inline-block;width:24px;height:24px;line-height:23px;text-align:center;
   font-size:15px;color:var(--act);background:transparent;border:1px solid transparent;
@@ -260,7 +292,7 @@ input[type=range]{ accent-color:var(--in); }
 
 <header class="cover">
   <h1>徒歩軌跡 まとめ</h1>
-  <p>国土地理院の地図に経路を重ねた記録です。2026-09-05に保存・147本・合計 548.30 km・住所の目安 37件。　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
+  <p>国土地理院の地図に経路を重ねた記録です。2026-09-05に保存・148本・合計 550.00 km・住所の目安 37件。　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
 </header>
 
 <div id="map"></div>
@@ -293,8 +325,14 @@ input[type=range]{ accent-color:var(--in); }
     <span id="tPickText"></span>
     <button class="mini" id="tPickOff">すべての経路に戻す</button>
   </div>
-  <table class="ppl" id="tPpl"></table>
-  <table class="ppl" id="tVen"></table>
+  <div class="bar viewsw">
+    <span>表示</span>
+    <button class="chip"    id="swWho"  type="button" aria-pressed="false">氏名で見る</button>
+    <button class="chip on" id="swVen"  type="button" aria-pressed="true">行事会場で見る</button>
+    <span class="pnote" id="swNote"></span>
+  </div>
+  <div class="tscroll" hidden><table class="ppl" id="tPpl"></table></div>
+  <div class="tscroll"><table class="ppl" id="tVen"></table></div>
   <div class="bar" style="margin-top:7px">
     <span>同じ人にまとめる：</span>
     <input type="text" id="tAlias" style="width:280px" value=""
@@ -69481,6 +69519,248 @@ input[type=range]{ accent-color:var(--in); }
 133.9465545,34.6689258,43.4
 133.9465973,34.6688927,43.4
 </coordinates></LineString></Placemark>
+<Placemark><name>9/5 岡山市中区西川原　黒泉 100枚　開催 9/10 天神山</name><description>開催場所：天神山文化プラザ</description><styleUrl>#line</styleUrl>
+<LineString><tessellate>1</tessellate><coordinates>
+133.9392084,34.6713590,43.7
+133.9392741,34.6714009,43.7
+133.9393192,34.6714368,43.7
+133.9393910,34.6713943,43.7
+133.9394931,34.6714152,43.7
+133.9395779,34.6714123,43.7
+133.9396029,34.6714645,43.7
+133.9396235,34.6714188,43.7
+133.9396670,34.6713905,43.7
+133.9397737,34.6713911,43.7
+133.9398927,34.6713783,43.5
+133.9399558,34.6713779,43.5
+133.9400604,34.6713831,43.5
+133.9401267,34.6713765,43.5
+133.9401921,34.6713705,43.5
+133.9402970,34.6713693,43.7
+133.9403594,34.6713697,43.7
+133.9404620,34.6713702,43.7
+133.9405177,34.6713856,43.6
+133.9405345,34.6714457,43.5
+133.9405307,34.6715377,43.5
+133.9405229,34.6714645,43.5
+133.9405130,34.6714156,43.5
+133.9405678,34.6713737,43.7
+133.9406771,34.6713841,43.8
+133.9407399,34.6713866,43.7
+133.9407524,34.6714306,43.7
+133.9407581,34.6715209,52.3
+133.9407533,34.6715906,53.7
+133.9408174,34.6715855,43.7
+133.9407964,34.6716615,44.4
+133.9408084,34.6717092,44.4
+133.9408210,34.6717597,49.5
+133.9408220,34.6718062,49.5
+133.9407888,34.6717265,45.5
+133.9407835,34.6716653,45.5
+133.9407821,34.6716069,43.7
+133.9407753,34.6715556,43.7
+133.9407684,34.6715024,53.3
+133.9407649,34.6714231,53.3
+133.9407756,34.6713499,53.3
+133.9408668,34.6713460,43.7
+133.9409511,34.6713582,43.7
+133.9408911,34.6713489,43.7
+133.9407983,34.6713626,43.7
+133.9407058,34.6713773,50.3
+133.9406013,34.6713728,43.7
+133.9405474,34.6713652,43.7
+133.9404772,34.6713717,43.5
+133.9404233,34.6713798,43.5
+133.9403599,34.6713883,43.5
+133.9402620,34.6713939,43.7
+133.9402544,34.6714477,43.7
+133.9402649,34.6715050,43.5
+133.9402921,34.6715582,43.5
+133.9402737,34.6716124,43.5
+133.9402881,34.6716849,43.5
+133.9402983,34.6717468,43.5
+133.9402802,34.6718190,43.9
+133.9402037,34.6718362,43.5
+133.9401863,34.6719072,43.6
+133.9401974,34.6719885,43.6
+133.9401628,34.6720277,44.0
+133.9401273,34.6721381,43.6
+133.9401054,34.6721845,43.6
+133.9401346,34.6722286,43.6
+133.9401779,34.6722791,43.6
+133.9402629,34.6722854,43.6
+133.9403049,34.6723165,43.6
+133.9403595,34.6723287,44.0
+133.9402806,34.6723306,43.6
+133.9401800,34.6723654,43.6
+133.9401306,34.6723873,43.6
+133.9400729,34.6723967,43.6
+133.9399769,34.6724083,43.6
+133.9399405,34.6723522,43.6
+133.9400184,34.6723840,43.6
+133.9400834,34.6723733,43.6
+133.9401521,34.6723707,43.6
+133.9402043,34.6723142,43.6
+133.9401989,34.6722646,43.6
+133.9401884,34.6722156,43.6
+133.9401748,34.6721618,43.6
+133.9401642,34.6721075,43.5
+133.9401594,34.6720577,43.5
+133.9401496,34.6720087,43.5
+133.9401229,34.6719272,43.3
+133.9400491,34.6718964,43.5
+133.9399373,34.6718878,43.6
+133.9398830,34.6719224,43.6
+133.9398191,34.6719317,43.6
+133.9397432,34.6719093,43.6
+133.9396864,34.6719198,43.6
+133.9395807,34.6718866,43.6
+133.9394786,34.6718742,43.6
+133.9393830,34.6719205,43.6
+133.9392816,34.6719313,43.7
+133.9392045,34.6719146,43.6
+133.9391462,34.6719104,43.6
+133.9390875,34.6719144,43.6
+133.9390675,34.6719611,43.2
+133.9390144,34.6719384,43.2
+133.9389767,34.6718756,43.7
+133.9389613,34.6718258,43.4
+133.9389959,34.6717899,43.7
+133.9389731,34.6718502,43.8
+133.9389609,34.6718955,43.8
+133.9390024,34.6719356,43.5
+133.9390950,34.6719305,43.4
+133.9391996,34.6719445,43.6
+133.9393029,34.6719395,43.6
+133.9393641,34.6719395,43.6
+133.9394745,34.6719409,43.6
+133.9395685,34.6719341,43.6
+133.9396690,34.6719446,43.6
+133.9397710,34.6719701,43.6
+133.9398177,34.6720449,43.6
+133.9398154,34.6721185,43.6
+133.9398221,34.6721673,43.6
+133.9398050,34.6722141,43.6
+133.9397520,34.6722483,43.6
+133.9396998,34.6722205,43.6
+133.9396251,34.6722440,43.6
+133.9395356,34.6722738,43.6
+133.9394819,34.6722882,43.6
+133.9394239,34.6723062,43.6
+133.9393328,34.6723187,43.6
+133.9392888,34.6722669,43.6
+133.9393092,34.6723295,43.6
+133.9393118,34.6723996,43.6
+133.9393480,34.6724452,43.6
+133.9392593,34.6724826,43.6
+133.9391920,34.6724536,43.6
+133.9391197,34.6724295,43.5
+133.9390591,34.6724258,43.5
+133.9389968,34.6724252,43.6
+133.9389570,34.6725008,43.9
+133.9389726,34.6725622,43.9
+133.9389852,34.6726230,43.9
+133.9389869,34.6727014,43.7
+133.9389814,34.6727741,43.7
+133.9389847,34.6728279,43.7
+133.9389895,34.6728748,43.8
+133.9389892,34.6729240,43.8
+133.9389917,34.6729712,43.8
+133.9389982,34.6730597,43.7
+133.9390033,34.6731324,43.8
+133.9390026,34.6732101,44.3
+133.9390013,34.6732569,43.8
+133.9390000,34.6733033,43.8
+133.9389928,34.6733533,43.8
+133.9389720,34.6734375,43.8
+133.9389612,34.6735130,43.8
+133.9389552,34.6735598,43.8
+133.9389323,34.6736460,43.9
+133.9389092,34.6737247,43.9
+133.9388945,34.6738052,43.9
+133.9388850,34.6738841,43.9
+133.9388766,34.6739301,43.9
+133.9389129,34.6740145,43.9
+133.9389707,34.6740523,43.9
+133.9390616,34.6740864,43.9
+133.9391220,34.6741247,43.9
+133.9391771,34.6741571,44.4
+133.9392359,34.6741877,44.4
+133.9393047,34.6741719,43.9
+133.9393699,34.6742000,43.8
+133.9394356,34.6742236,43.8
+133.9395354,34.6742371,43.9
+133.9396118,34.6742628,43.9
+133.9396283,34.6742188,43.9
+133.9396846,34.6742256,43.9
+133.9397374,34.6742465,43.9
+133.9397937,34.6742805,43.9
+133.9397953,34.6743344,44.6
+133.9398665,34.6743386,43.9
+133.9399103,34.6742635,43.9
+133.9400107,34.6742305,47.5
+133.9400248,34.6741851,47.5
+133.9400263,34.6741112,43.6
+133.9399646,34.6740814,47.0
+133.9398751,34.6740688,44.1
+133.9398149,34.6740673,43.9
+133.9398915,34.6740872,46.3
+133.9399982,34.6740744,43.5
+133.9400542,34.6740768,43.5
+133.9401264,34.6740675,43.5
+133.9401878,34.6740954,43.8
+133.9402898,34.6741178,43.5
+133.9402084,34.6741070,43.8
+133.9400960,34.6740845,43.8
+133.9400416,34.6741097,43.9
+133.9400338,34.6741723,43.9
+133.9400345,34.6742192,43.9
+133.9400919,34.6742717,43.9
+133.9401430,34.6742876,43.9
+133.9402256,34.6742947,43.5
+133.9402871,34.6743185,43.8
+133.9403459,34.6743080,43.4
+133.9403997,34.6743484,43.4
+133.9404636,34.6743369,43.4
+133.9405599,34.6743567,43.4
+133.9406220,34.6743402,43.4
+133.9407264,34.6743064,43.4
+133.9408259,34.6742955,43.4
+133.9408202,34.6742275,43.4
+133.9408029,34.6741796,43.4
+133.9408058,34.6742328,43.4
+133.9407946,34.6742845,43.4
+133.9407903,34.6743335,43.4
+133.9407786,34.6744032,43.4
+133.9407920,34.6744658,43.4
+133.9407864,34.6745416,43.4
+133.9407469,34.6745870,43.4
+133.9406996,34.6746338,43.4
+133.9407607,34.6746975,43.6
+133.9407085,34.6747264,43.4
+133.9406717,34.6746651,43.5
+133.9405691,34.6746720,43.9
+133.9405516,34.6747189,43.9
+133.9405198,34.6746452,43.9
+133.9404580,34.6746011,43.9
+133.9404076,34.6746238,43.9
+133.9403852,34.6746756,43.9
+133.9403674,34.6746190,43.9
+133.9402535,34.6746384,43.9
+133.9402156,34.6745775,43.9
+133.9401150,34.6746230,43.9
+133.9400877,34.6745457,43.9
+133.9400229,34.6745466,43.9
+133.9400122,34.6745967,43.9
+133.9399889,34.6746392,43.9
+133.9399326,34.6746379,44.0
+133.9398772,34.6746199,44.0
+133.9398397,34.6746532,44.2
+133.9397733,34.6746533,44.2
+133.9397235,34.6746724,44.2
+133.9397218,34.6746246,44.2
+133.9397791,34.6746366,44.2
+</coordinates></LineString></Placemark>
 <Placemark><name>9/3 岡山市北区南方　黒泉 100枚　開催 9/10 天神山</name><description>開催場所：天神山文化プラザ</description><styleUrl>#line</styleUrl>
 <LineString><tessellate>1</tessellate><coordinates>
 133.9265291,34.6703839,61.7
@@ -75987,7 +76267,7 @@ input[type=range]{ accent-color:var(--in); }
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.656157,133.845291],"zoom":10,"file":"徒歩軌跡 まとめ_20260905","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["西ふれあい","西ふれあいセンター"],["備前市民","備前市民センター"],["瀬戸内市","瀬戸内市文化センター"],["備前市市民","備前市市民センター"],["笠岡市保健","笠岡市保健センター"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.657498,133.844376],"zoom":10,"file":"徒歩軌跡 まとめ_20260905","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["西ふれあい","西ふれあいセンター"],["備前市民","備前市民センター"],["瀬戸内市","瀬戸内市文化センター"],["備前市市民","備前市市民センター"],["笠岡市保健","笠岡市保健センター"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -76232,6 +76512,8 @@ function setMapLive(on,quiet){
   if(!quiet&&typeof flash==='function')
     flash(mapLive ? '地図の操作に切り替えました。もう一度押すと、ページの操作に戻ります。'
                   : 'ページの操作に戻りました。地図を動かすには、右上の釦か、二本指で触れてください。');
+  // 集計の欄から地図へ来ていたなら、終えたときにその欄へ画面を戻します
+  if(!mapLive && typeof backFrom==='function') backFrom();
 }
 (function(){
   const el=map.getContainer(); if(!el) return;
@@ -76279,6 +76561,82 @@ function setMapLive(on,quiet){
   }
   window.addEventListener('keydown',e=>{ if(e.key==='Escape'&&mapLive) setMapLive(false); });
   setMapLive(false,true);
+})();
+
+/* ファイルが出る釦は、二度押しを受け付けません。
+   ダブルクリックすると、押した回数だけ同じファイルができます。
+   押した本人に自覚が無いことが多く、原因の分かりにくい不具合になります。
+   1.2秒のあいだ止め、そのあいだ釦を薄くして「いま受け付けない」ことを見せます。
+   読み取りや絞り込みの釦には掛けません。何度押しても増えないためです。 */
+function guardOnce(id,ms){
+  const b=document.getElementById(id); if(!b||b.dataset.guard) return;
+  b.dataset.guard='1'; b.__lock=0;
+  const span=ms||1200;
+  b.addEventListener('click',function(ev){
+    const now=Date.now();
+    if(now-(b.__lock||0) < span){          // 締めの中は、本来の処理まで届かせません
+      ev.stopImmediatePropagation(); ev.preventDefault(); return;
+    }
+    b.__lock=now;
+    b.disabled=true; b.style.opacity='.5'; b.style.cursor='progress';
+    setTimeout(()=>{ b.disabled=false; b.style.opacity=''; b.style.cursor=''; }, span);
+  },true);                                  // 本来の処理より先に走らせます
+  // disabled だけでは足りません。同じ瞬間に二回届いた押下は素通りするためです。
+  // 時間で締め、二回目は stopImmediatePropagation で本来の処理へ渡しません。
+  b.addEventListener('dblclick',ev=>{ ev.stopImmediatePropagation(); ev.preventDefault(); },true);
+}
+function guardSaves(){
+  ['mergeBtn','shareBtn','tCsv','kmlBtn','specBtn'].forEach(id=>guardOnce(id,1200));
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',guardSaves);
+else guardSaves();
+
+/* 集計の見せ方を切り替えます。表は常に一つだけ見えています。 */
+var tallyView='ven';                      // 'who' か 'ven'。初めは行事会場で開きます
+function setTallyView(v,quiet){
+  tallyView = (v==='who') ? 'who' : 'ven';   // 指定が無ければ行事会場
+  const p=document.getElementById('tPpl'), n=document.getElementById('tVen');
+  if(p&&p.parentElement) p.parentElement.hidden = (tallyView!=='who');
+  if(n&&n.parentElement) n.parentElement.hidden = (tallyView!=='ven');
+  const bw=document.getElementById('swWho'), bv=document.getElementById('swVen');
+  if(bw){ bw.classList.toggle('on',tallyView==='who'); bw.setAttribute('aria-pressed',tallyView==='who'); }
+  if(bv){ bv.classList.toggle('on',tallyView==='ven'); bv.setAttribute('aria-pressed',tallyView==='ven'); }
+  const note=document.getElementById('swNote');
+  if(note) note.textContent = tallyView==='ven'
+    ? '会場ごとの枚数は延べです。1枚に行事が二つ以上あると、会場をまたいで重なります。'
+    : '氏名ごとの枚数は、実際に配った数です。';
+}
+(function(){
+  const go=()=>{
+    const bw=document.getElementById('swWho'), bv=document.getElementById('swVen');
+    if(bw) bw.addEventListener('click',()=>setTallyView('who'));
+    if(bv) bv.addEventListener('click',()=>setTallyView('ven'));
+    setTallyView('ven',true);              // 初めは行事会場
+  };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go();
+})();
+
+/* 集計の箱を「見出し＋データ10行」の高さにします。
+   字の大きさや折り返しで行の高さは変わるので、描いたあとに実際に測って入れます。
+   10行に満たないときは、その分だけ。空白を残しません。 */
+const TALLY_ROWS=10;
+function fitRows(tbl,n){
+  if(!tbl||!tbl.parentElement) return;
+  const box=tbl.parentElement;
+  const cap=tbl.querySelector('caption'), head=tbl.querySelector('thead');
+  const rows=[...tbl.querySelectorAll('tbody tr')];
+  if(!rows.length){ box.style.maxHeight=''; return; }
+  let h=(cap?cap.getBoundingClientRect().height:0)+(head?head.getBoundingClientRect().height:0);
+  const take=Math.min(n||TALLY_ROWS, rows.length);
+  for(let i=0;i<take;i++) h+=rows[i].getBoundingClientRect().height;
+  box.style.maxHeight=Math.ceil(h+4)+'px';      // 4px は枠のぶん
+}
+function fitTallyRows(){
+  fitRows(document.getElementById('tPpl'),TALLY_ROWS);
+  fitRows(document.getElementById('tVen'),TALLY_ROWS);
+}
+(function(){ let t;
+  window.addEventListener('resize',()=>{ clearTimeout(t); t=setTimeout(fitTallyRows,150); });
 })();
 function fitAll(){
   const on=tracks.filter(t=>t.on);
@@ -76936,9 +77294,30 @@ function numCells(v,base,whole){
         +one(v.sheets,n(v.sheets))+one(v.km,v.km.toFixed(2));
 }
 // 絞った先へ地図を寄せ、右上に「前に戻る」を出す
+/* 集計の欄を押して地図へ移る前に、どこから来たかを控えます。
+   地図の操作を終えたとき、その欄へ画面を戻すためです。 */
+var cameFrom=null;   // var にするのは、置いた場所より前から呼ばれても困らないようにするため
+function markFrom(){
+  const el=document.activeElement;
+  const row=el&&el.closest&&el.closest('tr,.tbox,.row');
+  cameFrom={ y:window.scrollY, sel:row&&row.dataset?
+    (row.dataset.v?`[data-v="${row.dataset.v}"]`:
+     row.dataset.w?`[data-w="${row.dataset.w}"]`:
+     row.dataset.c!==undefined?`.tbox[data-c="${row.dataset.c}"]`:null):null };
+}
+function backFrom(){
+  const c=cameFrom; cameFrom=null;
+  if(!c) return false;
+  const el=c.sel&&document.querySelector(c.sel);
+  if(el&&el.scrollIntoView){ el.scrollIntoView({behavior:'smooth',block:'center'});
+    el.classList.add('hot'); setTimeout(()=>el.classList.remove('hot'),1600); }
+  else window.scrollTo({top:c.y,behavior:'smooth'});
+  return true;
+}
 function goMap(set){
   if(!set||!set.size) return false;
   const b=L.featureGroup([...set].map(t=>t.line)).getBounds();
+  markFrom();
   showBack(true);
   if(!b.isValid()) return true;
   const el=document.getElementById('map');
@@ -77042,8 +77421,10 @@ function goBack(){
   tallyNow();
   showBack(!!(dayPick||whoPick||cityPick));
   if(b&&b.center){ map.invalidateSize(); map.setView(b.center,b.zoom); }
-  const el=document.querySelector('.tally');
-  if(el&&el.scrollIntoView) el.scrollIntoView({behavior:'smooth',block:'start'});
+  if(!backFrom()){                       // 押した欄が分かればそこへ、分からなければ集計の頭へ
+    const el=document.querySelector('.tally');
+    if(el&&el.scrollIntoView) el.scrollIntoView({behavior:'smooth',block:'start'});
+  }
 }
 
 function applyPick(){
@@ -77128,7 +77509,9 @@ function drawVenues(rows){
   const n=x=>x.toLocaleString();
   const cells=v=>`<td>${v.n}</td><td>${n(v.oka)}</td><td>${n(v.kura)}</td>`
                 +`<td>${n(v.sheets)}</td><td>${v.km.toFixed(2)}</td>`;
-  el.innerHTML=`<caption>行事会場ごと。会場の行を押すと、その会場の行事日と、その日に誰が何枚配ったかが並びます。もう一度押すとその会場の分を地図に映します。行事日や氏名を押せば、その分だけを映します。地図の右上の「前に戻る」で元に戻ります</caption>`
+  el.innerHTML=`<colgroup><col class="c1"><col class="c2"><col class="c3">`
+    +`<col class="c4"><col class="c5"><col class="c6"></colgroup>`
+    +`<caption>行事会場ごと。会場の行を押すと、その会場の行事日と、その日に誰が何枚配ったかが並びます。もう一度押すとその会場の分を地図に映します。行事日や氏名を押せば、その分だけを映します。地図の右上の「前に戻る」で元に戻ります</caption>`
     +`<thead><tr><th class="nm">行事会場</th><th>件数</th><th>岡山</th><th>倉敷</th>`
     +`<th>枚数</th><th>距離km</th></tr></thead><tbody>`
     +list.map(v=>{
@@ -77233,7 +77616,9 @@ function drawPeople(rows){
   const n=x=>x.toLocaleString();
   const cells=v=>`<td>${v.n}</td><td>${n(v.oka)}</td><td>${n(v.kura)}</td>`
                 +`<td>${n(v.sheets)}</td><td>${v.km.toFixed(2)}</td>`;
-  el.innerHTML=`<caption>氏名ごと。氏名の行を押すと、その人が行事会場ごと・行事日ごとに何枚配ったかが開きます</caption>`
+  el.innerHTML=`<colgroup><col class="c1"><col class="c2"><col class="c3">`
+    +`<col class="c4"><col class="c5"><col class="c6"></colgroup>`
+    +`<caption>氏名ごと。氏名の行を押すと、その人が行事会場ごと・行事日ごとに何枚配ったかが開きます</caption>`
     +`<thead><tr><th class="nm">氏名</th><th>件数</th><th>岡山</th><th>倉敷</th>`
     +`<th>枚数</th><th>距離km</th></tr></thead><tbody>`
     +list.map(v=>{
@@ -77404,6 +77789,15 @@ function tallyNow(){
      +`<div><dt>期間</dt><dd>${a?nd(md(a)):'最初'}〜${b?nd(md(b)):'最後'}</dd></div>`;
   drawPeople(rows);                      // 共有版でも氏名の表を出します（姓だけなので隠す理由がありません）
   drawVenues(rows);
+  if(typeof setTallyView==='function') setTallyView(tallyView,true);
+  if(typeof fitTallyRows==='function'){
+    // 隠れている表は測れないので、いったん見せて測り、すぐ戻します
+    const boxes=[...document.querySelectorAll('.tscroll')];
+    const was=boxes.map(b=>b.hidden);
+    boxes.forEach(b=>b.hidden=false);
+    fitTallyRows();
+    boxes.forEach((b,i)=>b.hidden=was[i]);
+  }
   const seen=new Map(); let dup=0;
   for(const r of rows){
     if(!r.sheets||!r.key) continue;
@@ -77519,6 +77913,25 @@ function zipStore(files){
   return out;
 }
 // 表（行の配列）をエクセルの書類にして保存する
+
+/* ファイルを書き出す最後の関門。ここで一度だけに絞ります。
+   釦の側で締めても、道が複数あると抜けます。
+   「書き出す」という行いそのものを、1.2秒に一度だけにします。
+   同じ名前で続けて呼ばれたものは、二度押しとみなして捨てます。 */
+var __lastPut=0, __lastPutName='';
+function putFile(blob,filename){
+  const now=Date.now();
+  if(now-__lastPut < 1200 && filename===__lastPutName){
+    return false;                       // 二度押し。何も出しません
+  }
+  __lastPut=now; __lastPutName=filename;
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);
+  return true;
+}
 function saveXlsx(sheets,name){
   // sheets は [{name, aoa}, …]。表ごとに一枚ずつシートを作ります。
   // 一枚に縦積みしないのは、列の意味が表ごとに違い、幅を一組しか持てないためです。
@@ -77557,13 +77970,8 @@ function saveXlsx(sheets,name){
       +'</Relationships>'}
   ].concat(list.map((x,i)=>({name:`xl/worksheets/sheet${i+1}.xml`, text:xlsxSheet(x.aoa)})));
   // 保存の口はこの中に持たせます（共有版には save が無いため）
-  const blob=new Blob([zipStore(files)],
-    {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url; a.download=name;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),4000);
+  putFile(new Blob([zipStore(files)],
+    {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), name);
 }
 function tallyBook(){
   const a=mmddOf(document.getElementById('tFrom').value), b=mmddOf(document.getElementById('tTo').value);
