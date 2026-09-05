@@ -159,13 +159,21 @@ button{font-family:var(--jp);font-size:13.5px;cursor:pointer}
   cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='26' height='26'><g stroke='%231E50A2' stroke-width='2'><line x1='13' y1='1' x2='13' y2='25'/><line x1='1' y1='13' x2='25' y2='13'/></g><circle cx='13' cy='13' r='3' fill='none' stroke='%231E50A2' stroke-width='2'/></svg>") 13 13, crosshair;
 }
 #mapMode{
-  position:absolute; right:10px; top:10px; z-index:500; pointer-events:none;
-  font-family:var(--jp); font-size:12px; line-height:1.5; padding:5px 10px;
-  border-radius:2px; background:rgba(255,255,255,.92); border:1px solid var(--in-edge);
-  color:var(--in);
+  position:absolute; right:10px; top:10px; z-index:1200; cursor:pointer;
+  font-family:var(--jp); font-size:12.5px; font-weight:700; line-height:1.4;
+  padding:8px 12px; min-height:0; border-radius:3px;
+  background:rgba(255,255,255,.94); border:1.5px solid var(--in); color:var(--in);
+  box-shadow:0 1px 4px rgba(0,0,0,.18);
 }
-#map.maplive + #mapMode, .mapwrap.live #mapMode{ background:var(--in); color:#fff; border-color:var(--in); }
-.mapwrap{ position:relative; }
+#mapMode:hover{ background:var(--in-tint); }
+#map.maplive #mapMode{ background:var(--in); color:#fff; }
+/* 指の機械では矢印が無く、釦が唯一の目印になります。はっきり見えるようにします */
+@media (pointer:coarse){
+  #mapMode{ min-height:44px; font-size:14px; padding:11px 16px;
+            background:#fff; border-width:2px; box-shadow:0 2px 8px rgba(0,0,0,.28); }
+  #map.maplive #mapMode{ background:var(--in); color:#fff; }
+}
+#map{ position:relative; }        /* 釦を地図の中に置くための土台 */
 .dupm{color:#AE1240;font-weight:700;margin-left:2px;font-size:.9em}
 .tri{display:inline-block;width:24px;height:24px;line-height:23px;text-align:center;
   font-size:15px;color:var(--act);background:transparent;border:1px solid transparent;
@@ -75979,7 +75987,7 @@ input[type=range]{ accent-color:var(--in); }
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.657493,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260905","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["西ふれあい","西ふれあいセンター"],["備前市民","備前市民センター"],["瀬戸内市","瀬戸内市文化センター"],["備前市市民","備前市市民センター"],["笠岡市保健","笠岡市保健センター"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.656157,133.845291],"zoom":10,"file":"徒歩軌跡 まとめ_20260905","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["西ふれあい","西ふれあいセンター"],["備前市民","備前市民センター"],["瀬戸内市","瀬戸内市文化センター"],["備前市市民","備前市市民センター"],["笠岡市保健","笠岡市保健センター"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -76204,42 +76212,71 @@ function addTracks(list){
   render();
 }
 
-/* 地図の操作は、長押しで入り、長押しで出ます。
-   ふだんは地図を止めておくので、地図の上を指でなぞってもページが縦に送られます。
-   見るだけ（経路や輪に触れて吹き出しを読む）は、切り替えなくてもできます。 */
-let mapLive=false, swallowClick=false;
+/* 地図の操作とページの操作の切り替え。
+   長押しは使いません。端末が持っている操作（文字の選択、貼り付けの吹き出し、
+   画像の保存メニュー）とぶつかり、押さえ込むほど別のところで不具合が出るためです。
+     一。地図の隅の釦を押す
+     二。二本指で触れている間だけ動かす（指を離せば戻る）
+   見るだけ（経路や輪に触れて吹き出しを読む）は、切り替えなしでできます。 */
+let mapLive=false, twoFinger=false;
 const MAPH=['dragging','touchZoom','doubleClickZoom','scrollWheelZoom','boxZoom','keyboard'];
+function mapHandlers(on){ MAPH.forEach(h=>{ if(map[h]) on?map[h].enable():map[h].disable(); }); }
 function setMapLive(on,quiet){
   mapLive=!!on;
-  MAPH.forEach(h=>{ if(map[h]) mapLive?map[h].enable():map[h].disable(); });
+  mapHandlers(mapLive);
   const el=map.getContainer();
-  if(el){ el.classList.toggle('maplive',mapLive);
-          if(el.parentElement) el.parentElement.classList.toggle('live',mapLive); }
+  if(el) el.classList.toggle('maplive',mapLive);
   const b=document.getElementById('mapMode');
-  if(b) b.textContent = mapLive ? '地図の操作中（長押しで戻る）' : '長押しで地図を動かせます';
+  if(b){ b.textContent = mapLive?'地図をとめる':'地図を動かす';
+         b.setAttribute('aria-pressed', mapLive?'true':'false'); }
   if(!quiet&&typeof flash==='function')
-    flash(mapLive ? '地図の操作に切り替えました。もう一度長押しすると、ページの操作に戻ります。'
-                  : 'ページの操作に戻りました。地図を動かすには、地図の中で長押ししてください。');
+    flash(mapLive ? '地図の操作に切り替えました。もう一度押すと、ページの操作に戻ります。'
+                  : 'ページの操作に戻りました。地図を動かすには、右上の釦か、二本指で触れてください。');
 }
 (function(){
   const el=map.getContainer(); if(!el) return;
-  if(el.parentElement) el.parentElement.classList.add('mapwrap');
-  const b=document.createElement('div'); b.id='mapMode';
-  (el.parentElement||document.body).appendChild(b);
-  let timer=null, sx=0, sy=0;
-  const stop=()=>{ if(timer){ clearTimeout(timer); timer=null; } };
-  el.addEventListener('pointerdown',e=>{
-    sx=e.clientX; sy=e.clientY; stop();
-    timer=setTimeout(()=>{ timer=null; swallowClick=true; setMapLive(!mapLive); },600);
+  const b=document.createElement('button');
+  b.id='mapMode'; b.type='button'; b.setAttribute('aria-pressed','false');
+  b.addEventListener('click',ev=>{ ev.stopPropagation(); setMapLive(!mapLive); });
+  // 釦は「地図そのもの」の中へ入れます。ページの箱に付けると、地図の外に出ます。
+  el.appendChild(b);
+  if(window.L&&L.DomEvent){ L.DomEvent.disableClickPropagation(b);
+                            L.DomEvent.disableScrollPropagation&&L.DomEvent.disableScrollPropagation(b); }
+  // 二本指で触れている間だけ動かす。指を離せば元に戻ります。
+  el.addEventListener('touchstart',e=>{
+    if(mapLive) return;
+    if(e.touches&&e.touches.length>=2&&!twoFinger){
+      twoFinger=true; mapHandlers(true); el.classList.add('maplive');
+    }
   },{passive:true});
-  el.addEventListener('pointermove',e=>{
-    if(timer&&(Math.abs(e.clientX-sx)>10||Math.abs(e.clientY-sy)>10)) stop();
-  },{passive:true});
-  ['pointerup','pointercancel','pointerleave'].forEach(k=>el.addEventListener(k,stop,{passive:true}));
-  // 切り替えた直後の一回だけ、押した扱いを飲み込みます（吹き出しが同時に開かないように）
-  el.addEventListener('click',e=>{
-    if(swallowClick){ swallowClick=false; e.stopPropagation(); e.preventDefault(); }
-  },true);
+  const off=e=>{
+    if(!twoFinger) return;
+    if(e.touches&&e.touches.length>0) return;
+    twoFinger=false; mapHandlers(mapLive); el.classList.toggle('maplive',mapLive);
+  };
+  el.addEventListener('touchend',off,{passive:true});
+  el.addEventListener('touchcancel',off,{passive:true});
+  // 矢印のある機械（PC）だけ、長押し450msでも切り替えられるようにします。
+  // 指の機械で一本指の長押しを使うと、文字の選択や保存メニューと必ずぶつかるため、
+  // そちらでは効かせません（釦と二本指で足ります）。
+  const FINE = !!(window.matchMedia && matchMedia('(pointer:fine)').matches);
+  if(FINE){
+    let timer=null, sx=0, sy=0, swallow=false;
+    const stop=()=>{ if(timer){ clearTimeout(timer); timer=null; } };
+    el.addEventListener('pointerdown',e=>{
+      if(e.pointerType!=='mouse'&&e.pointerType!=='pen') return;   // 指は対象外
+      sx=e.clientX; sy=e.clientY; stop();
+      timer=setTimeout(()=>{ timer=null; swallow=true; setMapLive(!mapLive); },450);
+    },{passive:true});
+    el.addEventListener('pointermove',e=>{
+      if(timer&&(Math.abs(e.clientX-sx)>10||Math.abs(e.clientY-sy)>10)) stop();
+    },{passive:true});
+    ['pointerup','pointercancel','pointerleave'].forEach(k=>el.addEventListener(k,stop,{passive:true}));
+    // 切り替えた直後の一回だけ、押した扱いを飲み込みます（吹き出しが同時に開かないように）
+    el.addEventListener('click',e=>{
+      if(swallow){ swallow=false; e.stopPropagation(); e.preventDefault(); }
+    },true);
+  }
   window.addEventListener('keydown',e=>{ if(e.key==='Escape'&&mapLive) setMapLive(false); });
   setMapLive(false,true);
 })();
