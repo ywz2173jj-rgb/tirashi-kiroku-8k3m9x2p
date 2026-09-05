@@ -206,6 +206,25 @@ button{font-family:var(--jp);font-size:13.5px;cursor:pointer}
 .viewsw .chip{ font-weight:600 }
 .viewsw .chip.on{ background:var(--in); color:#fff; border-color:var(--in) }
 #swNote{ color:var(--muted) }
+
+/* 狭い画面では、数字が升からはみ出します（13,460 や 281.89 は 55px 要ります）。
+   名前の列を細くして数字へ回し、余白と字も詰めます。
+   幅で判定します。指かマウスかではなく、使える横幅の問題だからです。 */
+@media (max-width:520px){
+  .ppl th,.ppl td{ padding:4px 2px; font-size:10.5px; }
+  .ppl col.c1{width:28%}  /* 氏名／行事会場 */
+  .ppl col.c2{width:9%}   /* 件数 */
+  .ppl col.c3{width:15%}  /* 岡山 */
+  .ppl col.c4{width:15%}  /* 倉敷 */
+  .ppl col.c5{width:15%}  /* 枚数 */
+  .ppl col.c6{width:18%}  /* 距離km */
+  .ppl td.nm,.ppl th.nm{ font-size:11px; overflow-wrap:anywhere; }
+}
+@media (max-width:380px){
+  .ppl th,.ppl td{ padding:4px 1px; font-size:9.5px; }
+  .ppl col.c1{width:26%}
+  .ppl td.nm,.ppl th.nm{ font-size:10px }
+}
 .dupm{color:#AE1240;font-weight:700;margin-left:2px;font-size:.9em}
 .tri{display:inline-block;width:24px;height:24px;line-height:23px;text-align:center;
   font-size:15px;color:var(--act);background:transparent;border:1px solid transparent;
@@ -76267,7 +76286,7 @@ input[type=range]{ accent-color:var(--in); }
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.657498,133.844376],"zoom":10,"file":"徒歩軌跡 まとめ_20260905","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["西ふれあい","西ふれあいセンター"],["備前市民","備前市民センター"],["瀬戸内市","瀬戸内市文化センター"],["備前市市民","備前市市民センター"],["笠岡市保健","笠岡市保健センター"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.657493,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260905","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["西ふれあい","西ふれあいセンター"],["備前市民","備前市民センター"],["瀬戸内市","瀬戸内市文化センター"],["備前市市民","備前市市民センター"],["笠岡市保健","笠岡市保健センター"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
