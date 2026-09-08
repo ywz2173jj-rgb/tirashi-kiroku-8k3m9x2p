@@ -351,7 +351,7 @@ input, textarea, select{ border-radius:3px; }
 
 <header class="cover">
   <h1>徒歩軌跡 まとめ</h1>
-  <p>国土地理院の地図に経路を重ねた記録です。2026-09-05に保存・146本・合計 546.62 km・住所の目安 37件。　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
+  <p>国土地理院の地図に経路を重ねた記録です。2026-09-08に保存・146本・合計 546.62 km・住所の目安 37件。　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
 </header>
 
 <div id="map"></div>
@@ -75824,7 +75824,7 @@ input, textarea, select{ border-radius:3px; }
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.657493,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260905","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["西ふれあい","西ふれあいセンター"],["備前市民","備前市民センター"],["瀬戸内市","瀬戸内市文化センター"],["備前市市民","備前市市民センター"],["笠岡市保健","笠岡市保健センター"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.657498,133.844376],"zoom":10,"file":"徒歩軌跡 まとめ_20260908","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["西ふれあい","西ふれあいセンター"],["備前市民","備前市民センター"],["瀬戸内市","瀬戸内市文化センター"],["備前市市民","備前市市民センター"],["笠岡市保健","笠岡市保健センター"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -75868,9 +75868,28 @@ let overName=(V.over in OVERS)?V.over:'なし';
 const venueOnly=!!V.venueOnly;                 // 共有版として保存されたものかどうか
 // 共有版ではKMLの書き出しだけ外します（緯度経度がそのまま出るため）。
 // 取り除くのは、押し所を結び終えたあと（起動の所）にします
+/* スマホかどうかは「画面の短いほうの辺」で見ます。
+   窓の幅では見分けられません。スマホを横向きにすると幅が844〜932pxになり、
+   タブレットと区別が付かないためです。短辺なら向きを変えても変わりません。 */
+function isPhone(){
+  const coarse = !!(window.matchMedia && matchMedia('(pointer:coarse)').matches);
+  const shortSide = Math.min(screen.width||9999, screen.height||9999);
+  return coarse && shortSide < 500;
+}
 function hideSaves(){
-  // 共有版で外すのは KML だけ。エクセル用は残します
+  // 共有版で外すのは KML だけ。エクセル用はパソコン・タブレットでは残します。
   //   （記録そのものが姓だけになっているので、書き出しても姓しか出ません）
+  // スマホだけは、保存先が分かりにくく開くアプリも要るので、釦を出さず一行に置き換えます。
+  if(isPhone()){
+    const c=document.getElementById('tCsv');
+    if(c&&c.parentElement){
+      const p=document.createElement('span');
+      p.className='pnote';
+      p.textContent='スマホでは、この画面で見るだけです。エクセルへの書き出しは、パソコンでお使いください。';
+      c.parentElement.insertBefore(p,c);
+      c.remove();
+    }
+  }
   ['kmlBtn'].forEach(id=>{
     const el=document.getElementById(id);
     if(el&&el.parentNode) el.parentNode.removeChild(el);
