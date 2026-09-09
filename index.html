@@ -77634,8 +77634,9 @@ function setMapLive(on,quiet){
   b.addEventListener('click',ev=>{ ev.stopPropagation(); setMapLive(!mapLive); });
   // 押しただけで画面が動かないようにします。
   // 釦に焦点が移ると、ブラウザがその釦を見える位置へ運び、地図の頭まで跳びます。
+  // 止めるのはマウスのときだけ。指の画面で touchstart を止めると、
+  // そのあとの click が起きず、釦そのものが反応しなくなります（iPhone）。
   b.addEventListener('mousedown',ev=>ev.preventDefault());
-  b.addEventListener('touchstart',ev=>{ if(ev.cancelable) ev.preventDefault(); },{passive:false});
   // 釦は「地図そのもの」の中へ。右上の箱に入れて縦に並べます
   el.appendChild(b);
   if(typeof mapCtlBox==='function') mapCtlBox();
