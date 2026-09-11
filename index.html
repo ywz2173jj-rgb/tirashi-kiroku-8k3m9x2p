@@ -89100,7 +89100,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.645072,133.778458],"zoom":10,"file":"徒歩軌跡 まとめ_20260912","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260912","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -89666,9 +89666,19 @@ function showHint(t,x,yTop,yBottom,src){
   const inCtl = ctl && ctl.contains(document.activeElement||null);
   let L=(x||0)-r.width/2, T=(yTop||0)-r.height-GAP*1.4; // まずは上に出す
   /* 「見えている範囲」に収めます。つまんで動かすと、画面と見えている範囲はずれます。 */
+  /* 拡大しているとき、座標の基準がブラウザによって違います。
+     getBoundingClientRect() が「画面全体」を基準にするものと、
+     「見えている範囲」を基準にするものがあります。
+     どちらか一方だけで測ると、実機で外れます。
+     両方の枠の重なり（共通部分）に収めれば、どちらであっても画面の中に入ります。 */
   const vv2 = window.visualViewport;
-  const VL = vv2 ? vv2.offsetLeft : 0, VT = vv2 ? vv2.offsetTop : 0;
-  const VW = vv2 ? vv2.width : innerWidth, VH = vv2 ? vv2.height : innerHeight;
+  const aL = vv2 ? vv2.offsetLeft : 0, aT = vv2 ? vv2.offsetTop : 0;
+  const aW = vv2 ? vv2.width : innerWidth, aH = vv2 ? vv2.height : innerHeight;
+  const bW = (document.documentElement && document.documentElement.clientWidth) || innerWidth;
+  const bH = (document.documentElement && document.documentElement.clientHeight) || innerHeight;
+  const VL = Math.max(aL, 0), VT = Math.max(aT, 0);
+  const VW = Math.max(60, Math.min(aL + aW, bW) - VL);
+  const VH = Math.max(60, Math.min(aT + aH, bH) - VT);
   L=Math.max(VL+6, Math.min(L, VL+VW-r.width-6));
   // 上に入らないときは下へ回します。基準は「釦の下端」。
   // 指やカーソルの位置を基準にすると、釦の上に重なります。
@@ -89733,13 +89743,15 @@ function showHint(t,x,yTop,yBottom,src){
   if(src && (src.closest || src.getBoundingClientRect)){
     const btn2=(src.closest && src.closest('button')) || src;
     const br2=btn2.getBoundingClientRect();
-    for(let pass=0; pass<3; pass++){
+    for(let pass=0; pass<4; pass++){
       const now=el.getBoundingClientRect();
       let dx=0, dy=0;
-      if(now.left   < VL+6)        dx = (VL+6) - now.left;
-      if(now.right  > VL+VW-6)     dx = Math.min(dx, (VL+VW-6) - now.right);
-      if(now.top    < VT+6)        dy = (VT+6) - now.top;
-      if(now.bottom > VT+VH-6)     dy = Math.min(dy, (VT+VH-6) - now.bottom);
+      /* 右下からのはみ出しを先に直し、そのあと左上を見ます。
+         狭い画面では両方外れることがあり、そのときは左上に合わせます。 */
+      if(now.right  > VL+VW-6)     dx = (VL+VW-6) - now.right;
+      if(now.left+dx < VL+6)       dx = (VL+6) - now.left;
+      if(now.bottom > VT+VH-6)     dy = (VT+VH-6) - now.bottom;
+      if(now.top+dy  < VT+6)       dy = (VT+6) - now.top;
       if(dx===0 && dy===0){
         // はみ出していない。触れた釦に重なっていないかを見る
         const hit = !(now.bottom < br2.top-1 || now.top > br2.bottom+1 ||
