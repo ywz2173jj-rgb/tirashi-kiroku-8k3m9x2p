@@ -89087,7 +89087,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654109,133.844376],"zoom":10,"file":"徒歩軌跡 まとめ_20260911","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260911","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -89625,17 +89625,27 @@ function showHint(t,x,yTop,yBottom,src){
   const el=hintTip();
   if(!t){ el.hidden=true; return; }
   el.textContent=t; el.hidden=false;
-  el.style.left='0px'; el.style.top='0px';           // いったん左上へ置いて大きさを測る
-  const r=el.getBoundingClientRect();
+  el.style.left='0px'; el.style.top='0px';
+  el.style.transform='';                             // いったん素の大きさに戻して測る
+  const r0=el.getBoundingClientRect();
+  /* 画面をつまんで広げているとき、枠・文字・位置の三つとも補正します。
+     getBoundingClientRect() の値は拡大の影響を受けません。画面では拡大率の分だけ
+     大きく見えますので、見た目を一定にするには割った値を使います。
+     小札は釦の箱の外にあるので、箱にかけた scale は効きません。別に補正します。 */
+  const zz = (window.visualViewport && visualViewport.scale) || 1;
+  el.style.transform = (zz!==1) ? ('scale(' + (1/zz) + ')') : '';
+  el.style.transformOrigin = 'top left';
+  const GAP = 10/zz;
+  const r = { width: r0.width/zz, height: r0.height/zz };
   /* スマホの地図の釦に触れたときは、釦の箱の下に出します。
      上には余地がなく、重ねると釦が隠れるためです。 */
   const ctl=document.getElementById('mapCtl');
   const inCtl = ctl && ctl.contains(document.activeElement||null);
-  let L=(x||0)-r.width/2, T=(yTop||0)-r.height-14;   // まずは上に出す
+  let L=(x||0)-r.width/2, T=(yTop||0)-r.height-GAP*1.4; // まずは上に出す
   L=Math.max(6, Math.min(L, innerWidth-r.width-6));  // 画面からはみ出さないように寄せる
   // 上に入らないときは下へ回します。基準は「釦の下端」。
   // 指やカーソルの位置を基準にすると、釦の上に重なります。
-  if(T<6) T=(yBottom!=null?yBottom:(yTop||0))+14;
+  if(T<6) T=(yBottom!=null?yBottom:(yTop||0))+GAP*1.4;
   /* 地図の釦に触れたときは、その釦のすぐ近くに、左右の中央をそろえて出します。
      上に余地があり、ほかの釦を隠さないなら上。駄目なら下。
      下もほかの釦を隠すなら、箱全体の下へ。
@@ -89650,22 +89660,33 @@ function showHint(t,x,yTop,yBottom,src){
     const hides = top => others.some(o =>
         !(top + r.height < o.top - 1 || top > o.bottom + 1 ||
           CL + r.width  < o.left - 1 || CL > o.right  + 1));
-    const up   = br.top - r.height - 10;
-    const down = br.bottom + 10;
+    const up   = br.top - r.height - GAP;
+    const down = br.bottom + GAP;
     if(up >= 6 && !hides(up))                         { T = up;   L = CL; }
     else if(down + r.height <= innerHeight - 6 && !hides(down)) { T = down; L = CL; }
-    else { T = cr.bottom + 10;
+    else { T = cr.bottom + GAP;
            L = Math.max(6, Math.min(cr.left + cr.width/2 - r.width/2, innerWidth-r.width-6)); }
   }else if(ctl && !ctl.hidden){
     const cr=ctl.getBoundingClientRect();
     const hits = !(T+r.height < cr.top-2 || T > cr.bottom+2 ||
                    L+r.width  < cr.left-2 || L > cr.right+2);
-    if(hits){ T = cr.bottom + 10;
+    if(hits){ T = cr.bottom + GAP;
               L = Math.max(6, Math.min(cr.left + cr.width/2 - r.width/2, innerWidth-r.width-6)); }
   }
   if(T+r.height>innerHeight-6) T=Math.max(6, innerHeight-r.height-6);
   el.style.left=Math.round(L)+'px';
   el.style.top =Math.round(T)+'px';
+  /* 縮めた分だけ中心がずれることがあるので、置いたあとに測って合わせ直します。
+     「どの釦の説明か」が分かるよう、左右の中心は必ずそろえます。 */
+  if(zz!==1 && src){
+    const btn=(src.closest&&src.closest('button'))||src;
+    const br=btn.getBoundingClientRect(), now=el.getBoundingClientRect();
+    const dx=(br.left+br.width/2)-(now.left+now.width/2);
+    if(Math.abs(dx)>0.5){
+      const nl=Math.max(6, Math.min(L+dx, innerWidth-now.width-6));
+      el.style.left=Math.round(nl)+'px';
+    }
+  }
 }
 document.addEventListener('mousemove',ev=>{
   // 釦の上では、釦そのものを隠さないよう、釦の上端を基準にします
