@@ -89622,13 +89622,29 @@ function showHint(t,x,yTop,yBottom,src){
   // 上に入らないときは下へ回します。基準は「釦の下端」。
   // 指やカーソルの位置を基準にすると、釦の上に重なります。
   if(T<6) T=(yBottom!=null?yBottom:(yTop||0))+14;
-  /* 地図の釦（中央上部の箱）に触れたときは、その箱の下に出します。
-     上には余地がなく、重ねると釦が隠れるためです。
-     重なっていなくても、上に出すと地図の外へはみ出ることがあります。 */
+  /* 地図の釦の箱に触れたときは、触れた釦の隣（すぐ上／すぐ下）に出します。
+     遠くに出ると、どの釦の説明か分かりません。
+     ただし、他の釦を隠すくらいなら箱の外へ回します。
+     隠れた釦は押せません。説明のために操作を奪ってはいけません。 */
   if(ctl && !ctl.hidden && src && ctl.contains(src)){
     const cr=ctl.getBoundingClientRect();
-    T = cr.bottom + 10;
-    L = Math.max(6, Math.min(cr.left + cr.width/2 - r.width/2, innerWidth-r.width-6));
+    const btn=src.closest('button') || src;
+    const br=btn.getBoundingClientRect();
+    const kids=[...ctl.querySelectorAll('button')].filter(x=>!x.hidden);
+    const idx=kids.indexOf(btn);
+    const first=idx<=0, last=idx===kids.length-1;
+    const above=br.top - r.height - 10;            // その釦のすぐ上
+    const below=br.bottom + 10;                     // その釦のすぐ下
+    const hides=(top)=>kids.some(x=>{               // 他の釦を隠すか
+      if(x===btn) return false;
+      const q=x.getBoundingClientRect();
+      return !(top+r.height < q.top-1 || top > q.bottom+1);
+    });
+    if(first && above >= 6 && !hides(above))        T = above;        // 一番上 → すぐ上
+    else if(last && below+r.height <= innerHeight-6 && !hides(below)) T = below;  // 一番下 → すぐ下
+    else if(cr.bottom + 10 + r.height <= innerHeight-6) T = cr.bottom + 10;  // 箱の下へ
+    else                                            T = Math.max(6, cr.top - r.height - 10); // 箱の上へ
+    L = Math.max(6, Math.min(br.left + br.width/2 - r.width/2, innerWidth-r.width-6));
   }else if(ctl && !ctl.hidden){
     const cr=ctl.getBoundingClientRect();
     const hits = !(T+r.height < cr.top-2 || T > cr.bottom+2 ||
