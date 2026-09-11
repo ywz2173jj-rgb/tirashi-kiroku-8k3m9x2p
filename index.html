@@ -352,8 +352,9 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
    釦は地図の中の「上部・中央」。右上は親指が届きにくいためです。
    画面をつまんで広げても、釦と説明は同じ大きさのままにします（下の keepSize）。 */
 @media (pointer:coarse){
-  #mapCtl{ left:50% !important; right:auto !important; top:10px !important;
-           align-items:center !important; transform-origin:top center; }
+  /* 位置は keepSize() が毎回入れ直します。ここで !important を付けると、
+     入れ直した値が効かなくなり、つまんで動かしたとき視界から消えます。 */
+  #mapCtl{ align-items:center !important; transform-origin:top center; }
   #mapCtl #mapMode, #mapCtl #backBtn{
            font-size:15px !important; min-height:44px !important;
            padding:10px 16px !important; white-space:nowrap; }
@@ -459,7 +460,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 
 <header class="cover">
   <h1>徒歩軌跡 まとめ</h1>
-  <p>国土地理院の地図に経路を重ねた記録です。2026-09-11に保存・159本・合計 598.09 km・住所の目安 151件。　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
+  <p>国土地理院の地図に経路を重ねた記録です。2026-09-12に保存・159本・合計 598.09 km・住所の目安 151件。　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
 </header>
 
 <div id="map"></div>
@@ -89087,7 +89088,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260911","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260912","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -89642,10 +89643,14 @@ function showHint(t,x,yTop,yBottom,src){
   const ctl=document.getElementById('mapCtl');
   const inCtl = ctl && ctl.contains(document.activeElement||null);
   let L=(x||0)-r.width/2, T=(yTop||0)-r.height-GAP*1.4; // まずは上に出す
-  L=Math.max(6, Math.min(L, innerWidth-r.width-6));  // 画面からはみ出さないように寄せる
+  /* 「見えている範囲」に収めます。つまんで動かすと、画面と見えている範囲はずれます。 */
+  const vv2 = window.visualViewport;
+  const VL = vv2 ? vv2.offsetLeft : 0, VT = vv2 ? vv2.offsetTop : 0;
+  const VW = vv2 ? vv2.width : innerWidth, VH = vv2 ? vv2.height : innerHeight;
+  L=Math.max(VL+6, Math.min(L, VL+VW-r.width-6));
   // 上に入らないときは下へ回します。基準は「釦の下端」。
   // 指やカーソルの位置を基準にすると、釦の上に重なります。
-  if(T<6) T=(yBottom!=null?yBottom:(yTop||0))+GAP*1.4;
+  if(T<VT+6) T=(yBottom!=null?yBottom:(yTop||0))+GAP*1.4;
   /* 地図の釦に触れたときは、その釦のすぐ近くに、左右の中央をそろえて出します。
      上に余地があり、ほかの釦を隠さないなら上。駄目なら下。
      下もほかの釦を隠すなら、箱全体の下へ。
@@ -89658,19 +89663,21 @@ function showHint(t,x,yTop,yBottom,src){
        どの釦の説明か分かりにくくなりました。近いほうが大事です。 */
     const btn = src.closest('button') || src;
     const br  = btn.getBoundingClientRect();
-    const CL  = Math.max(6, Math.min(br.left + br.width/2 - r.width/2, innerWidth-r.width-6));
+    const CL  = Math.max(VL+6, Math.min(br.left + br.width/2 - r.width/2, VL+VW-r.width-6));
     const up   = br.top - r.height - GAP;
     const down = br.bottom + GAP;
-    if(up >= 6)  { T = up;   L = CL; }     // 上に余地があれば上
+    if(up >= VT+6)  { T = up;   L = CL; }     // 上に余地があれば上
     else         { T = down; L = CL; }     // 無ければ下
-  }else if(ctl && !ctl.hidden){
+  }else if(ctl && !ctl.hidden && getComputedStyle(ctl).visibility!=='hidden'){
+    /* 地図以外の釦（一覧・集計表など）の説明は、中央上部の釦に重ねません。
+       そちらは押すためのものとして、いつも見えている必要があります。 */
     const cr=ctl.getBoundingClientRect();
     const hits = !(T+r.height < cr.top-2 || T > cr.bottom+2 ||
                    L+r.width  < cr.left-2 || L > cr.right+2);
     if(hits){ T = cr.bottom + GAP;
-              L = Math.max(6, Math.min(cr.left + cr.width/2 - r.width/2, innerWidth-r.width-6)); }
+              L = Math.max(VL+6, Math.min(cr.left + cr.width/2 - r.width/2, VL+VW-r.width-6)); }
   }
-  if(T+r.height>innerHeight-6) T=Math.max(6, innerHeight-r.height-6);
+  if(T+r.height>VT+VH-6) T=Math.max(VT+6, VT+VH-r.height-6);
   el.style.left=Math.round(L)+'px';
   el.style.top =Math.round(T)+'px';
   /* 縮めた分だけ中心がずれることがあるので、置いたあとに測って合わせ直します。
@@ -90561,14 +90568,28 @@ function keepSize(){
   const tip = document.getElementById('tTip');
   const coarse = !!(window.matchMedia && matchMedia('(pointer:coarse)').matches);
   if(box){
-    if(coarse && vv){
-      const s = vv.scale || 1;
+    if(coarse){
+      /* 画面そのものに貼り付け、いま見えている範囲の上部中央に置きます。
+         地図の中に置くと、つまんで動かしたときに地図ごとずれて視界から消えます。
+         実際に消えました。 */
+      const s = (vv && vv.scale) || 1;
+      box.style.position = 'fixed';
+      box.style.left = ((vv ? vv.offsetLeft : 0) + (vv ? vv.width : innerWidth)/2) + 'px';
+      box.style.top  = ((vv ? vv.offsetTop  : 0) + 10/s) + 'px';
+      box.style.right = 'auto';
       box.style.transform = 'translateX(-50%) scale(' + (1/s) + ')';
       box.style.transformOrigin = 'top center';
-    }else if(coarse){
-      box.style.transform = 'translateX(-50%)';
+      /* 地図が画面から外れているときは隠します。
+         地図の釦ですから、地図が見えていないときに浮いていては邪魔です。 */
+      const m = document.getElementById('map');
+      if(m){
+        const mr = m.getBoundingClientRect();
+        const vt = (vv ? vv.offsetTop : 0), vb = vt + (vv ? vv.height : innerHeight);
+        box.style.visibility = (mr.bottom < vt + 20 || mr.top > vb - 20) ? 'hidden' : '';
+      }
     }else{
-      box.style.transform = '';
+      box.style.position=''; box.style.left=''; box.style.top='';
+      box.style.right=''; box.style.transform=''; box.style.visibility='';
     }
   }
   if(tip && !tip.hidden && vv){
