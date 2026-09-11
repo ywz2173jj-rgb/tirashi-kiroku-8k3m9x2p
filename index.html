@@ -90685,9 +90685,20 @@ function keepSize(){
   }
 }
 (function(){
+  /* スクロールは細かく起きますので、画面の描き直しに合わせて一度にまとめます。
+     毎回測ると重くなります。 */
+  let waiting=false;
+  function soon(){
+    if(waiting) return;
+    waiting=true;
+    requestAnimationFrame(()=>{ waiting=false; keepSize(); });
+  }
   const vv = window.visualViewport;
-  if(vv){ vv.addEventListener('resize', keepSize); vv.addEventListener('scroll', keepSize); }
-  window.addEventListener('resize', keepSize);
+  if(vv){ vv.addEventListener('resize', soon); vv.addEventListener('scroll', soon); }
+  /* window の scroll が要ります。拡大していないとき、ページを普通にスクロールしても
+     visualViewport の合図は出ません。見ていないと、地図が画面から外れても釦が消えません。 */
+  window.addEventListener('scroll', soon, {passive:true});
+  window.addEventListener('resize', soon);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', keepSize);
   else keepSize();
 })();
