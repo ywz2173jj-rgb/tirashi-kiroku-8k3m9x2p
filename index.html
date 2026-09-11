@@ -89651,21 +89651,18 @@ function showHint(t,x,yTop,yBottom,src){
      下もほかの釦を隠すなら、箱全体の下へ。
      ほかの釦を隠すと、どの釦の説明か分からず、隠れた釦も押せません。 */
   if(ctl && !ctl.hidden && src && ctl.contains(src)){
+    /* 触れた釦のすぐ隣に出します。ほかの釦と重なって構いません。
+       触れている間だけのものですし、指を離せば消えます。
+       隠さないようにすると、かえって遠くなります。以前は隠しそうなときに
+       箱全体の下へ回していましたが、触れた釦から63pxも離れ、
+       どの釦の説明か分かりにくくなりました。近いほうが大事です。 */
     const btn = src.closest('button') || src;
     const br  = btn.getBoundingClientRect();
-    const cr  = ctl.getBoundingClientRect();
-    const others = [...ctl.querySelectorAll('button')].filter(x=>x!==btn && !x.hidden)
-                     .map(x=>x.getBoundingClientRect());
-    const CL = Math.max(6, Math.min(br.left + br.width/2 - r.width/2, innerWidth-r.width-6));
-    const hides = top => others.some(o =>
-        !(top + r.height < o.top - 1 || top > o.bottom + 1 ||
-          CL + r.width  < o.left - 1 || CL > o.right  + 1));
+    const CL  = Math.max(6, Math.min(br.left + br.width/2 - r.width/2, innerWidth-r.width-6));
     const up   = br.top - r.height - GAP;
     const down = br.bottom + GAP;
-    if(up >= 6 && !hides(up))                         { T = up;   L = CL; }
-    else if(down + r.height <= innerHeight - 6 && !hides(down)) { T = down; L = CL; }
-    else { T = cr.bottom + GAP;
-           L = Math.max(6, Math.min(cr.left + cr.width/2 - r.width/2, innerWidth-r.width-6)); }
+    if(up >= 6)  { T = up;   L = CL; }     // 上に余地があれば上
+    else         { T = down; L = CL; }     // 無ければ下
   }else if(ctl && !ctl.hidden){
     const cr=ctl.getBoundingClientRect();
     const hits = !(T+r.height < cr.top-2 || T > cr.bottom+2 ||
