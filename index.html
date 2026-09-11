@@ -89100,7 +89100,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260912","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.645072,133.778458],"zoom":10,"file":"徒歩軌跡 まとめ_20260912","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -89722,6 +89722,7 @@ function showHint(t,x,yTop,yBottom,src){
     /* 地図の釦の説明という印。地図が画面から外れたとき、説明も一緒に消すためです。
        釦が消えているのに説明だけ残っては、何の説明か分かりません。 */
     el.dataset.forMap = (ctl && ctl.contains(btn)) ? '1' : '';
+    el.__btn = btn;                    // どの釦の説明かを覚えておきます
   }
   el.style.left=Math.round(L)+'px';
   el.style.top =Math.round(T)+'px';
@@ -90704,10 +90705,24 @@ function keepSize(){
     tb2.style.transform = 'translate(-50%,-100%) scale(' + (1/s2) + ')';
     tb2.style.transformOrigin = 'bottom center';
   }
-  if(tip && !tip.hidden && vv){
-    const s = vv.scale || 1;
-    tip.style.transform = 'scale(' + (1/s) + ')';
-    tip.style.transformOrigin = 'top left';
+  /* 説明は、触れたときに一度置いたきりでは足りません。
+     そのあと画面をつまんで広げると、拡大するほど釦から離れ、やがて画面から出ます。
+     （隙間が 10 → 43 → 75 → 140 → 205px と開き、3倍で消えました）
+     覚えておいた釦をもとに、動くたびに置き直します。 */
+  if(tip && !tip.hidden && tip.__btn && !window.__tipPlacing){
+    const btn = tip.__btn;
+    if(!document.contains(btn)){ tip.hidden = true; }
+    else {
+      const br = btn.getBoundingClientRect();
+      const vt = (vv ? vv.offsetTop : 0), vb = vt + (vv ? vv.height : innerHeight);
+      if(br.bottom < vt - 2 || br.top > vb + 2){
+        tip.hidden = true;              // 釦が画面から出たら、説明も消します
+      }else{
+        window.__tipPlacing = true;
+        try{ showHint(tip.textContent, br.left + br.width/2, br.top, br.bottom, btn); }
+        finally{ window.__tipPlacing = false; }
+      }
+    }
   }
 }
 (function(){
