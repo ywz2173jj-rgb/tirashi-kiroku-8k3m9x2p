@@ -358,8 +358,9 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
   #mapCtl #mapMode, #mapCtl #backBtn{
            font-size:15px !important; min-height:44px !important;
            padding:10px 16px !important; white-space:nowrap; }
-  #tTip{  font-size:14px !important; padding:9px 13px !important;
-          max-width:min(320px,88vw) !important; }
+  /* 幅は showHint() が枠に合わせて入れ直します。ここで !important を付けると
+     入れ直した値が効かず、枠からはみ出します（top:10px でも同じ罠を踏みました）。 */
+  #tTip{  font-size:14px !important; padding:9px 13px !important; }
 }
 
 #todoFix{ margin-left:8px; border:2px solid #E08000 !important; color:#B25A00; font-weight:700; background:#fff; }
@@ -89088,7 +89089,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260912","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"傾斜量図","opacity":0.3,"center":[34.655239,133.847122],"zoom":10,"file":"徒歩軌跡 まとめ_20260912","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -89628,6 +89629,15 @@ function showHint(t,x,yTop,yBottom,src){
   el.textContent=t; el.hidden=false;
   el.style.left='0px'; el.style.top='0px';
   el.style.transform='';                             // いったん素の大きさに戻して測る
+  /* 中央の枠に入れるものは、枠より広くならないようにします。
+     測る前に幅を決めないと、枠からはみ出したまま測ることになります。 */
+  (function(){
+    const v=window.visualViewport;
+    const vw=v?v.width:innerWidth;
+    const fw=Math.min(vw-24, Math.max(240, vw*0.8));
+    const coarse=!!(window.matchMedia && matchMedia('(pointer:coarse)').matches);
+    el.style.maxWidth = coarse ? (Math.floor(fw)+'px') : '';
+  })();
   const r0=el.getBoundingClientRect();
   /* 画面をつまんで広げているとき、枠・文字・位置の三つとも補正します。
      getBoundingClientRect() の値は拡大の影響を受けません。画面では拡大率の分だけ
@@ -89655,29 +89665,57 @@ function showHint(t,x,yTop,yBottom,src){
      上に余地があり、ほかの釦を隠さないなら上。駄目なら下。
      下もほかの釦を隠すなら、箱全体の下へ。
      ほかの釦を隠すと、どの釦の説明か分からず、隠れた釦も押せません。 */
-  if(ctl && !ctl.hidden && src && ctl.contains(src)){
-    /* 触れた釦のすぐ隣に出します。ほかの釦と重なって構いません。
-       触れている間だけのものですし、指を離せば消えます。
-       隠さないようにすると、かえって遠くなります。以前は隠しそうなときに
-       箱全体の下へ回していましたが、触れた釦から63pxも離れ、
-       どの釦の説明か分かりにくくなりました。近いほうが大事です。 */
-    const btn = src.closest('button') || src;
-    const br  = btn.getBoundingClientRect();
-    const CL  = Math.max(VL+6, Math.min(br.left + br.width/2 - r.width/2, VL+VW-r.width-6));
-    const up   = br.top - r.height - GAP;
-    const down = br.bottom + GAP;
-    if(up >= VT+6)  { T = up;   L = CL; }     // 上に余地があれば上
-    else         { T = down; L = CL; }     // 無ければ下
-  }else if(ctl && !ctl.hidden && getComputedStyle(ctl).visibility!=='hidden'){
-    /* 地図以外の釦（一覧・集計表など）の説明は、中央上部の釦に重ねません。
-       そちらは押すためのものとして、いつも見えている必要があります。 */
+  window.__tipInFrame = false;
+  const coarse2 = !!(window.matchMedia && matchMedia('(pointer:coarse)').matches);
+  const ctlShown = !!(ctl && !ctl.hidden && getComputedStyle(ctl).visibility!=='hidden');
+  window.__tipWay='?';
+  if(ctlShown && src && ctl.contains(src)){
+    window.__tipWay='地図の釦';
+    /* 一。地図の釦。箱のすぐ下に出します。
+       箱は画面の中央上部に固定されているので、説明もそこに続きます。
+       箱には重ねません。押すための釦は、いつも見えている必要があります。 */
+    const cr=ctl.getBoundingClientRect();
+    T = cr.bottom + GAP;
+    L = Math.max(VL+6, Math.min(cr.left + cr.width/2 - r.width/2, VL+VW-r.width-6));
+  }else if(coarse2 && src && src.closest){
+    window.__tipWay='中央の枠';
+    /* 二。それ以外の釦。画面の中央に大きな枠を設け、その中に出します。
+       一覧の釦は画面のあちこちにあります。そのたびに説明が飛び回ると目で追えません。
+       出る場所を決めておけば、いつも同じあたりを見れば読めます。 */
+    const FW = Math.min(VW-24, Math.max(240, VW*0.8));
+    const FT = VT + VH*0.28, FH = VH*0.44;
+    const FL = VL + (VW-FW)/2;
+    L = FL + (FW - r.width)/2;
+    const btn=src.closest('button') || src;
+    const br=btn.getBoundingClientRect();
+    const lo = FT, hi = Math.max(FT, FT + FH - r.height);
+    const near = ((br.top + br.bottom)/2 < (FT + FH/2))
+               ? br.bottom + GAP
+               : br.top - r.height - GAP;
+    T = Math.max(lo, Math.min(near, hi));
+    const covers = t2 => !(t2 + r.height < br.top-1 || t2 > br.bottom+1 ||
+                           L + r.width   < br.left-1 || L > br.right+1);
+    if(covers(T)){
+      const below = Math.max(lo, Math.min(br.bottom + GAP, hi));
+      const above = Math.max(lo, Math.min(br.top - r.height - GAP, hi));
+      if(!covers(below)) T = below;
+      else if(!covers(above)) T = above;
+      else T = (br.top - FT > FT+FH - br.bottom) ? lo : hi;   // 広いほうへ寄せる
+    }
+    /* 枠から出さない。ここを通ったものは、必ず枠の中に収めます。 */
+    T = Math.max(lo, Math.min(T, hi));
+    L = Math.max(FL, Math.min(L, FL + FW - r.width));
+    window.__tipFrame = {FL, FT, FW, FH}; window.__tipInFrame = true;   // 検証で見るため
+  }else if(ctlShown){
+    window.__tipWay='矢印の機械';
+    /* 矢印の機械。中央上部の釦に重ねません。 */
     const cr=ctl.getBoundingClientRect();
     const hits = !(T+r.height < cr.top-2 || T > cr.bottom+2 ||
                    L+r.width  < cr.left-2 || L > cr.right+2);
     if(hits){ T = cr.bottom + GAP;
               L = Math.max(VL+6, Math.min(cr.left + cr.width/2 - r.width/2, VL+VW-r.width-6)); }
   }
-  if(T+r.height>VT+VH-6) T=Math.max(VT+6, VT+VH-r.height-6);
+  if(!window.__tipInFrame && T+r.height>VT+VH-6) T=Math.max(VT+6, VT+VH-r.height-6);
   el.style.left=Math.round(L)+'px';
   el.style.top =Math.round(T)+'px';
   /* 縮めた分だけ中心がずれることがあるので、置いたあとに測って合わせ直します。
