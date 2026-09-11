@@ -334,6 +334,20 @@ button:active, .chip:active, .mini:active, .tbox:active{ background:#D6EFE1; }
 .ppl td:not(.nm){ border:1px solid var(--rule); color:var(--ink); background:transparent; }
 /* 入力欄は青のまま。緑に上書きされないようにします */
 input, textarea, select{ border-radius:3px; }
+/* 押すところでは、文字を選ばせません。
+   指で釦をなぞると、スマホが「コピー」の札を出したり文字が青く選ばれたりして、
+   押そうとしているのに別のものが出てきます。
+   止めるのは CSS だけ。touchstart で既定の動きを止めると、
+   そのあとの click が起きなくなり、釦が反応しなくなります（v126でそうなりました）。 */
+button, #mapCtl, #tTip, #map, .ppl, .head, .grp, .tri, .askbox, #todoBar{
+  -webkit-user-select:none; -moz-user-select:none; user-select:none;
+  -webkit-touch-callout:none;
+}
+/* 読むところ・書くところは、そのまま選べます */
+input, textarea, .row .nm, .row .note, .howto, .note, .foot{
+  -webkit-user-select:text; user-select:text; -webkit-touch-callout:default;
+}
+
 /* 共有版をスマホで見るとき。
    釦は地図の中の「上部・中央」。右上は親指が届きにくいためです。
    画面をつまんで広げても、釦と説明は同じ大きさのままにします（下の keepSize）。 */
@@ -89622,29 +89636,26 @@ function showHint(t,x,yTop,yBottom,src){
   // 上に入らないときは下へ回します。基準は「釦の下端」。
   // 指やカーソルの位置を基準にすると、釦の上に重なります。
   if(T<6) T=(yBottom!=null?yBottom:(yTop||0))+14;
-  /* 地図の釦の箱に触れたときは、触れた釦の隣（すぐ上／すぐ下）に出します。
-     遠くに出ると、どの釦の説明か分かりません。
-     ただし、他の釦を隠すくらいなら箱の外へ回します。
-     隠れた釦は押せません。説明のために操作を奪ってはいけません。 */
+  /* 地図の釦に触れたときは、その釦のすぐ近くに、左右の中央をそろえて出します。
+     上に余地があり、ほかの釦を隠さないなら上。駄目なら下。
+     下もほかの釦を隠すなら、箱全体の下へ。
+     ほかの釦を隠すと、どの釦の説明か分からず、隠れた釦も押せません。 */
   if(ctl && !ctl.hidden && src && ctl.contains(src)){
-    const cr=ctl.getBoundingClientRect();
-    const btn=src.closest('button') || src;
-    const br=btn.getBoundingClientRect();
-    const kids=[...ctl.querySelectorAll('button')].filter(x=>!x.hidden);
-    const idx=kids.indexOf(btn);
-    const first=idx<=0, last=idx===kids.length-1;
-    const above=br.top - r.height - 10;            // その釦のすぐ上
-    const below=br.bottom + 10;                     // その釦のすぐ下
-    const hides=(top)=>kids.some(x=>{               // 他の釦を隠すか
-      if(x===btn) return false;
-      const q=x.getBoundingClientRect();
-      return !(top+r.height < q.top-1 || top > q.bottom+1);
-    });
-    if(first && above >= 6 && !hides(above))        T = above;        // 一番上 → すぐ上
-    else if(last && below+r.height <= innerHeight-6 && !hides(below)) T = below;  // 一番下 → すぐ下
-    else if(cr.bottom + 10 + r.height <= innerHeight-6) T = cr.bottom + 10;  // 箱の下へ
-    else                                            T = Math.max(6, cr.top - r.height - 10); // 箱の上へ
-    L = Math.max(6, Math.min(br.left + br.width/2 - r.width/2, innerWidth-r.width-6));
+    const btn = src.closest('button') || src;
+    const br  = btn.getBoundingClientRect();
+    const cr  = ctl.getBoundingClientRect();
+    const others = [...ctl.querySelectorAll('button')].filter(x=>x!==btn && !x.hidden)
+                     .map(x=>x.getBoundingClientRect());
+    const CL = Math.max(6, Math.min(br.left + br.width/2 - r.width/2, innerWidth-r.width-6));
+    const hides = top => others.some(o =>
+        !(top + r.height < o.top - 1 || top > o.bottom + 1 ||
+          CL + r.width  < o.left - 1 || CL > o.right  + 1));
+    const up   = br.top - r.height - 10;
+    const down = br.bottom + 10;
+    if(up >= 6 && !hides(up))                         { T = up;   L = CL; }
+    else if(down + r.height <= innerHeight - 6 && !hides(down)) { T = down; L = CL; }
+    else { T = cr.bottom + 10;
+           L = Math.max(6, Math.min(cr.left + cr.width/2 - r.width/2, innerWidth-r.width-6)); }
   }else if(ctl && !ctl.hidden){
     const cr=ctl.getBoundingClientRect();
     const hits = !(T+r.height < cr.top-2 || T > cr.bottom+2 ||
