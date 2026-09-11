@@ -89725,17 +89725,43 @@ function showHint(t,x,yTop,yBottom,src){
   }
   el.style.left=Math.round(L)+'px';
   el.style.top =Math.round(T)+'px';
-  /* 縮めた分だけ中心がずれることがあるので、置いたあとに測って合わせ直します。
-     「どの釦の説明か」が分かるよう、左右の中心は必ずそろえます。 */
-  if(zz!==1 && src){
-    const btn=(src.closest&&src.closest('button'))||src;
-    const br=btn.getBoundingClientRect(), now=el.getBoundingClientRect();
-    const dx=(br.left+br.width/2)-(now.left+now.width/2);
-    if(Math.abs(dx)>0.5){
-      const nl=Math.max(6, Math.min(L+dx, innerWidth-now.width-6));
-      el.style.left=Math.round(nl)+'px';
+  /* 置いたあとに、もう一度測って直します。
+     拡大しているとき、計算だけでは合いません（1.5倍・2倍で画面からはみ出しました）。
+     実際に置いた位置を測り、はみ出していれば中へ押し込み、
+     触れた釦に重なっていれば反対側へ回します。 */
+  if(src && (src.closest || src.getBoundingClientRect)){
+    const btn2=(src.closest && src.closest('button')) || src;
+    const br2=btn2.getBoundingClientRect();
+    for(let pass=0; pass<3; pass++){
+      const now=el.getBoundingClientRect();
+      let dx=0, dy=0;
+      if(now.left   < VL+6)        dx = (VL+6) - now.left;
+      if(now.right  > VL+VW-6)     dx = Math.min(dx, (VL+VW-6) - now.right);
+      if(now.top    < VT+6)        dy = (VT+6) - now.top;
+      if(now.bottom > VT+VH-6)     dy = Math.min(dy, (VT+VH-6) - now.bottom);
+      if(dx===0 && dy===0){
+        // はみ出していない。触れた釦に重なっていないかを見る
+        const hit = !(now.bottom < br2.top-1 || now.top > br2.bottom+1 ||
+                      now.right  < br2.left-1 || now.left > br2.right+1);
+        if(!hit) break;
+        // 重なっていたら、余地の広いほうへ回す
+        const room = {上: br2.top-(VT+6), 下: (VT+VH-6)-br2.bottom,
+                      右: (VL+VW-6)-br2.right, 左: br2.left-(VL+6)};
+        const h=now.height, w=now.width;
+        if(room.下 >= h+GAP)      el.style.top = Math.round(br2.bottom+GAP)+'px';
+        else if(room.上 >= h+GAP) el.style.top = Math.round(br2.top-h-GAP)+'px';
+        else if(room.右 >= w+GAP) el.style.left= Math.round(br2.right+GAP)+'px';
+        else if(room.左 >= w+GAP) el.style.left= Math.round(br2.left-w-GAP)+'px';
+        else break;                        // どこにも逃げ場がない
+        continue;
+      }
+      el.style.left = Math.round(parseFloat(el.style.left||0) + dx) + 'px';
+      el.style.top  = Math.round(parseFloat(el.style.top ||0) + dy) + 'px';
     }
   }
+  /* v156の「中心を合わせ直す」処理は外しました。
+     上の押し込みで画面の中へ入れた位置を、また釦の中央へ戻してしまい、
+     はみ出しが直りませんでした（拡大1.5倍のエクセルの釦で確認）。 */
 }
 document.addEventListener('mousemove',ev=>{
   // 釦の上では、釦そのものを隠さないよう、釦の上端を基準にします
