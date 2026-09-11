@@ -334,6 +334,19 @@ button:active, .chip:active, .mini:active, .tbox:active{ background:#D6EFE1; }
 .ppl td:not(.nm){ border:1px solid var(--rule); color:var(--ink); background:transparent; }
 /* 入力欄は青のまま。緑に上書きされないようにします */
 input, textarea, select{ border-radius:3px; }
+/* 共有版をスマホで見るとき。
+   釦は地図の中の「上部・中央」。右上は親指が届きにくいためです。
+   画面をつまんで広げても、釦と説明は同じ大きさのままにします（下の keepSize）。 */
+@media (pointer:coarse){
+  #mapCtl{ left:50% !important; right:auto !important; top:10px !important;
+           align-items:center !important; transform-origin:top center; }
+  #mapCtl #mapMode, #mapCtl #backBtn{
+           font-size:15px !important; min-height:44px !important;
+           padding:10px 16px !important; white-space:nowrap; }
+  #tTip{  font-size:14px !important; padding:9px 13px !important;
+          max-width:min(320px,88vw) !important; }
+}
+
 #todoFix{ margin-left:8px; border:2px solid #E08000 !important; color:#B25A00; font-weight:700; background:#fff; }
 
 /* コメント（かっこ書き）。読み取りには使わないが、見えるところに残します */
@@ -89060,7 +89073,7 @@ input, textarea, select{ border-radius:3px; }
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.662952,133.818176],"zoom":15,"file":"徒歩軌跡 まとめ_20260911","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260911","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -89594,17 +89607,35 @@ function hintTip(){
            document.body.appendChild(el); }
   return el;
 }
-function showHint(t,x,yTop,yBottom){
+function showHint(t,x,yTop,yBottom,src){
   const el=hintTip();
   if(!t){ el.hidden=true; return; }
   el.textContent=t; el.hidden=false;
   el.style.left='0px'; el.style.top='0px';           // いったん左上へ置いて大きさを測る
   const r=el.getBoundingClientRect();
+  /* スマホの地図の釦に触れたときは、釦の箱の下に出します。
+     上には余地がなく、重ねると釦が隠れるためです。 */
+  const ctl=document.getElementById('mapCtl');
+  const inCtl = ctl && ctl.contains(document.activeElement||null);
   let L=(x||0)-r.width/2, T=(yTop||0)-r.height-14;   // まずは上に出す
   L=Math.max(6, Math.min(L, innerWidth-r.width-6));  // 画面からはみ出さないように寄せる
   // 上に入らないときは下へ回します。基準は「釦の下端」。
   // 指やカーソルの位置を基準にすると、釦の上に重なります。
   if(T<6) T=(yBottom!=null?yBottom:(yTop||0))+14;
+  /* 地図の釦（中央上部の箱）に触れたときは、その箱の下に出します。
+     上には余地がなく、重ねると釦が隠れるためです。
+     重なっていなくても、上に出すと地図の外へはみ出ることがあります。 */
+  if(ctl && !ctl.hidden && src && ctl.contains(src)){
+    const cr=ctl.getBoundingClientRect();
+    T = cr.bottom + 10;
+    L = Math.max(6, Math.min(cr.left + cr.width/2 - r.width/2, innerWidth-r.width-6));
+  }else if(ctl && !ctl.hidden){
+    const cr=ctl.getBoundingClientRect();
+    const hits = !(T+r.height < cr.top-2 || T > cr.bottom+2 ||
+                   L+r.width  < cr.left-2 || L > cr.right+2);
+    if(hits){ T = cr.bottom + 10;
+              L = Math.max(6, Math.min(cr.left + cr.width/2 - r.width/2, innerWidth-r.width-6)); }
+  }
   if(T+r.height>innerHeight-6) T=Math.max(6, innerHeight-r.height-6);
   el.style.left=Math.round(L)+'px';
   el.style.top =Math.round(T)+'px';
@@ -89613,7 +89644,7 @@ document.addEventListener('mousemove',ev=>{
   // 釦の上では、釦そのものを隠さないよう、釦の上端を基準にします
   const b=ev.target.closest&&ev.target.closest('button');
   const r=b? b.getBoundingClientRect() : null;
-  showHint(hintFor(ev.target), ev.clientX, r?r.top:ev.clientY, r?r.bottom:ev.clientY);
+  showHint(hintFor(ev.target), ev.clientX, r?r.top:ev.clientY, r?r.bottom:ev.clientY, ev.target);
 },true);
 document.addEventListener('mouseleave',()=>showHint(null),true);
 // 指の画面では「離す」がないので、触れるたびに書き換えます。
@@ -89623,10 +89654,10 @@ document.addEventListener('touchstart',ev=>{
   const b=ev.target.closest&&ev.target.closest('button');
   const r=b? b.getBoundingClientRect() : null;
   const y=p?p.clientY:0;
-  showHint(hintFor(ev.target), p?p.clientX:0, r?r.top:y, r?r.bottom:y);
+  showHint(hintFor(ev.target), p?p.clientX:0, r?r.top:y, r?r.bottom:y, ev.target);
 },{capture:true,passive:true});
 document.addEventListener('focusin',  ev=>{ const t=hintFor(ev.target); if(!t) return;
-  const r=ev.target.getBoundingClientRect(); showHint(t, r.left+r.width/2, r.top, r.bottom); },true);
+  const r=ev.target.getBoundingClientRect(); showHint(t, r.left+r.width/2, r.top, r.bottom, ev.target); },true);
 function fitAll(){
   const on=tracks.filter(t=>t.on);
   const use=on.length?on:tracks;
@@ -90475,6 +90506,39 @@ function setCity(city){
 let backCtl=null;
 /* 「前に戻る」は、地図の右上の箱に「地図操作オン／オフ」と縦に並べます。
    別々に置くと同じ場所を取り合い、重なる恐れがあるためです。 */
+
+/* 画面をつまんで広げても、釦と説明は同じ大きさのままにします。
+   拡大率の逆数をかけ、見えている範囲の上部中央に置き直します。
+   地図だけが大きくなり、釦は読みやすい大きさのままです。 */
+function keepSize(){
+  const vv = window.visualViewport;
+  const box = document.getElementById('mapCtl');
+  const tip = document.getElementById('tTip');
+  const coarse = !!(window.matchMedia && matchMedia('(pointer:coarse)').matches);
+  if(box){
+    if(coarse && vv){
+      const s = vv.scale || 1;
+      box.style.transform = 'translateX(-50%) scale(' + (1/s) + ')';
+      box.style.transformOrigin = 'top center';
+    }else if(coarse){
+      box.style.transform = 'translateX(-50%)';
+    }else{
+      box.style.transform = '';
+    }
+  }
+  if(tip && !tip.hidden && vv){
+    const s = vv.scale || 1;
+    tip.style.transform = 'scale(' + (1/s) + ')';
+    tip.style.transformOrigin = 'top left';
+  }
+}
+(function(){
+  const vv = window.visualViewport;
+  if(vv){ vv.addEventListener('resize', keepSize); vv.addEventListener('scroll', keepSize); }
+  window.addEventListener('resize', keepSize);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', keepSize);
+  else keepSize();
+})();
 function mapCtlBox(){
   const el=map.getContainer(); if(!el) return null;
   let box=document.getElementById('mapCtl');
@@ -90484,6 +90548,7 @@ function mapCtlBox(){
     const mm=document.getElementById('mapMode');
     if(mm) box.appendChild(mm);                    // 地図操作の釦も、この箱の中へ
     if(window.L&&L.DomEvent) L.DomEvent.disableClickPropagation(box);
+    if(typeof keepSize==='function') keepSize();
   }
   return box;
 }
