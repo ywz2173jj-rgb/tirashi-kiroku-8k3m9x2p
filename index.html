@@ -89087,7 +89087,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260911","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654109,133.844376],"zoom":10,"file":"徒歩軌跡 まとめ_20260911","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -91300,6 +91300,55 @@ function saveXlsx(sheets,name){
   // 保存の口はこの中に持たせます（共有版には save が無いため）
   putFile(new Blob([zipStore(files)],
     {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), name);
+}
+/* その行のコメント（かっこ書き）。経路にも報告にも付きうるので、両方から拾います。
+   本体にだけ置いて、ここに置き忘れていました。書き出したファイルでエクセルを
+   作ろうとすると noteOf is not defined で落ち、何も保存されませんでした。 */
+function noteOf(r){
+  const x=r&&r.src;
+  if(!x) return '';
+  return (x.plan&&x.plan.note) || x.note || '';
+}
+/* 本体にあってひな型に無かったもの。書き出したファイルで呼ばれると落ちます。
+   「押したのに何も起きない」という形で現れ、画面には何の断りも出ません。
+   関数を足すときは、本体とひな型の両方に置くこと。 */
+function flash(text){ document.getElementById('msg').textContent=text; }
+function fixNext(){
+  fixing=true;
+  const t=tracks.find(x=>missingOf(x.name).length);
+  if(t){ openEdit({t}); return true; }
+  const e=(typeof roster!=='undefined') ? roster.find(x=>x.trackId==null && missingOf(x.label).length) : null;
+  if(e){ openEdit({e}); return true; }
+  fixing=false;
+  flash('入力途中のものはありません。すべて集計に入りました。');
+  return false;
+}
+function fullMap(){
+  const keys=rawWho(), m=new Map();
+  if(surnameOnly()){ keys.forEach(k=>m.set(k,k)); return m; }
+  const al=aliasMap();
+  for(const k of keys){
+    if(al.has(k)){ m.set(k,al.get(k)); continue; }
+    const longer=keys.filter(x=>x!==k&&x.startsWith(k)&&!al.has(x));
+    m.set(k, longer.length===1?longer[0]:k);       // 行き先が一つの時だけ寄せる
+  }
+  return m;
+}
+function shortMap(){
+  const el=document.getElementById('shName');
+  const m=new Map();
+  String(el?el.value:'').split(/[、,\n]+/).forEach(p=>{
+    const q=p.split(/[=＝]/);
+    if(q.length===2){
+      const a=q[0].replace(/[\s　]+/g,''), b=q[1].replace(/[\s　]+/g,'');
+      if(a&&b) m.set(a,b);
+    }
+  });
+  return m;
+}
+function shortOf(key,sm){
+  if(sm.has(key)) return sm.get(key);
+  return key.length>=3?key.slice(0,2):key;
 }
 function tallyBook(){
   const a=mmddOf(document.getElementById('tFrom').value), b=mmddOf(document.getElementById('tTo').value);
