@@ -89100,7 +89100,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260913","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654109,133.844376],"zoom":10,"file":"徒歩軌跡 まとめ_20260913","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -89453,6 +89453,25 @@ function sayAtMap(text){
    （拡大してからオンにすると、縮小しても荒いまま。実機で確認）
    札そのものを作り直せば、新しい絵として焼かれます。
    invalidateSize だけでは足りません。札の img は同じものが残ります。 */
+/* 地図の上では、ページのつまみ拡大を止めます。
+   `touch-action: pan-y` だけでは、iPhone で止まりませんでした。
+   実機で visualViewport.scale が 2.3倍になっていました（v176で確認）。
+   ページが拡大されると、札は取りに行かれないまま引き伸ばされ、荒くなります。
+   しかも viewport の指定を差し替えても、この機械では戻せませんでした。
+   ですから、そもそも拡大させません。
+     地図の上 … つまんでも、ページは拡大しない
+                （地図操作オンなら、つまむ指は地図へ行き、札を取りに行く＝きれい）
+     地図の外 … これまでどおり、つまんで拡大できる（見出しや一覧の文字を大きくしたいとき）
+   gesturestart は iPhone だけの合図です。ほかの機械では何も起きません。 */
+(function(){
+  try{
+    const el = (map && map.getContainer) ? map.getContainer() : null;
+    if(!el) return;
+    const stop = ev => { if(ev.cancelable) ev.preventDefault(); };
+    for(const n of ['gesturestart','gesturechange','gestureend'])
+      el.addEventListener(n, stop, {passive:false});
+  }catch(e){}
+})();
 function refreshMapPaint(){
   try{
     if(typeof baseLayer!=='undefined' && baseLayer && baseLayer.redraw) baseLayer.redraw();
@@ -89498,7 +89517,7 @@ function setMapLive(on,quiet){
           sayAtMap('拡大は戻しました（' + _s0.toFixed(1) + '倍）。ズームは変えていません。');
         }
       }else{
-        sayAtMap('ページを拡大したままです（' + s2.toFixed(1) + '倍）。戻せませんでした。指で戻してから地図をつまんで拡大してください。');
+        sayAtMap('ページが' + s2.toFixed(1) + '倍のままです。指で縮めて元に戻してください。そのあとは、地図の上でつまむと地図だけが拡大し、写真がきれいに見えます。');
       }
     }, 420);
   }
@@ -89537,9 +89556,17 @@ function setMapLive(on,quiet){
   nb.id='numBtn'; nb.type='button'; nb.textContent='数';
   nb.setAttribute('aria-pressed','false');
   nb.title='ページの拡大・地図のズーム・取りに行っている札のズームを、その場で出します';
+  /* 大きさは釦自身に持たせます。#mapCtl button の見た目に頼ると、
+     指の画面では44pxでも、矢印の画面では15×22pxにしかなりませんでした（v176で確認）。
+     44pxは、指で確実に押せる下限です。どちらの画面でも割りません。 */
+  nb.style.cssText='min-width:44px;min-height:44px;font-size:14px;font-weight:700;padding:8px 10px';
   nb.addEventListener('click',ev=>{ ev.stopPropagation(); setNum(!numOn); });
   nb.addEventListener('mousedown',ev=>ev.preventDefault());
-  el.appendChild(nb);
+  /* 箱の中へ入れます。地図の中へ直に置くと、#mapCtl button の見た目が当たらず、
+     地図と同じ色の素の釦が隅に埋もれて、押す場所が分かりません（v176で確認）。
+     mapCtlBox() は #mapMode しか運びませんので、自分で入れます。 */
+  const _box = (typeof mapCtlBox==='function') ? mapCtlBox() : null;
+  (_box || el).appendChild(nb);
   if(window.L&&L.DomEvent){ L.DomEvent.disableClickPropagation(nb);
                             L.DomEvent.disableScrollPropagation&&L.DomEvent.disableScrollPropagation(nb); }
   if(typeof mapCtlBox==='function') mapCtlBox();
