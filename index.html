@@ -472,7 +472,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 
 <header class="cover">
   <h1>徒歩軌跡 まとめ</h1>
-  <p>国土地理院の地図に経路を重ねた記録です。2026-09-12に保存・159本・合計 598.09 km・住所の目安 151件。　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
+  <p>国土地理院の地図に経路を重ねた記録です。2026-09-13に保存・159本・合計 598.09 km・住所の目安 151件。　下の地図と重ねる地図を選び、不透明度を動かして表記を変えられます。</p>
 </header>
 
 <div id="map"></div>
@@ -89100,7 +89100,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260912","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.772146,134.230785],"zoom":13,"file":"徒歩軌跡 まとめ_20260913","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -89136,7 +89136,12 @@ const OVERS={
 };
 function mk(s,op){
   return L.tileLayer(s.url||`${GSI}${s.id}/{z}/{x}/{y}.${s.ext}`,
-    {maxZoom:19, maxNativeZoom:s.mz, opacity:op,
+    /* 上限は18。国土地理院の写真も淡色も、札があるのは18までです（mz:18）。
+       19まで許すと、18の札を2倍に引き伸ばして出すことになり、
+       点は一つも増えないまま、ぼやけた絵になります（v173まで）。
+       18で止めれば、常に元の細かさで見えます。
+       寄れる限界は 画面の横 96m → 192m になります。 */
+    {maxZoom:18, maxNativeZoom:s.mz, opacity:op,
      className:s.cls||'', attribution:s.credit||CREDIT});
 }
 let baseName=BASES[V.base]?V.base:'標準';
@@ -89361,6 +89366,24 @@ function tryResetPageZoom(){
     setTimeout(()=>{ try{ m.setAttribute('content', keep); }catch(e){} }, 300);
   }catch(e){}
 }
+/* 地図の釦を押したときの返事は、地図のそばに出します。
+   v174まで flash() に出していましたが、その欄はページのずっと上（559行）にあり、
+   地図（571行）を見ているときは画面の外です。拡大していればなおさらで、
+   出ていても見えませんでした。「出ない」のか「見えない」のか区別が付かず、
+   確かめようがありませんでした。
+   説明の小札は、釦のそばに出て、必ず画面の中に収まる仕掛けを持っています。
+   それをそのまま使います。 */
+function sayAtMap(text){
+  try{
+    const b=document.getElementById('mapMode');
+    if(!b || typeof showHint!=='function'){ if(typeof flash==='function') flash(text); return; }
+    const r=b.getBoundingClientRect();
+    showHint(text, r.left+r.width/2, r.top, r.bottom, b);
+    clearTimeout(window.__sayT);
+    window.__sayT=setTimeout(()=>{ const t=document.getElementById('tTip');
+      if(t && t.textContent===text) t.hidden=true; }, 6000);
+  }catch(e){ if(typeof flash==='function') flash(text); }
+}
 function setMapLive(on,quiet){
   /* 地図操作オンにするとき、ページが拡大されたままだと写真が荒いままです。
      ページの拡大は、絵を引き伸ばしているだけで、細かい札を取りに行きません。
@@ -89372,6 +89395,9 @@ function setMapLive(on,quiet){
      ③ を飛ばしてはいけません。戻せない機械でそのまま掛けると、
      2倍のうえに2倍で4倍になり、行き過ぎます。 */
   const _s0=(window.visualViewport && visualViewport.scale) || 1;
+  /* 拡大していないときも、いくつだったかを出します。
+     出ないと「働かなかった」のか「拡大されていなかった」のか分かりません。 */
+  if(on && !mapLive && _s0<=1.05) sayAtMap('地図操作オンにしました（ページの拡大は ' + _s0.toFixed(2) + '倍）。');
   if(on && !mapLive && _s0>1.05){
     const _ll=visibleCenterLatLng(), _z0=map.getZoom();
     tryResetPageZoom();
@@ -89383,11 +89409,12 @@ function setMapLive(on,quiet){
           const mx=(typeof map.getMaxZoom==='function') ? map.getMaxZoom() : 19;
           map.invalidateSize();
           map.setView(_ll, Math.min(mx, _z0+dz));
-          if(typeof flash==='function')
-            flash('ページの拡大を、地図の拡大に置き換えました。写真が細かく出ます。');
+          sayAtMap('ページの拡大を、地図の拡大に置き換えました（' + _s0.toFixed(1) + '倍 → ズーム+' + dz + '）。');
+        }else{
+          sayAtMap('拡大は戻しました（' + _s0.toFixed(1) + '倍）。ズームは変えていません。');
         }
-      }else if(typeof flash==='function'){
-        flash('ページを拡大したままです。指で元に戻してから地図をつまんで拡大すると、写真がきれいに見えます。');
+      }else{
+        sayAtMap('ページを拡大したままです（' + s2.toFixed(1) + '倍）。戻せませんでした。指で戻してから地図をつまんで拡大してください。');
       }
     }, 420);
   }
