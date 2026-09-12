@@ -89100,7 +89100,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.772146,134.230785],"zoom":13,"file":"徒歩軌跡 まとめ_20260913","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260913","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -89342,6 +89342,68 @@ function addTracks(list){
 let mapLive=false;
 const MAPH=['dragging','touchZoom','doubleClickZoom','scrollWheelZoom','boxZoom','keyboard'];
 function mapHandlers(on){ MAPH.forEach(h=>{ if(map[h]) on?map[h].enable():map[h].disable(); }); }
+/* ───────── 測る道具（v176・原因が分かったら外します）─────────
+   地図の上でつまんだとき、何が動いて何が動かないかを、その場で見るためのものです。
+   当てずっぽうで直すのをやめるために置きました。
+     ページ … visualViewport.scale（ページの拡大）
+     地図   … map.getZoom()（地図のズーム）
+     札     … 実際に取りに行っている札のズーム（画像の名前から読みます）
+     幅     … 見えている範囲の幅
+   「札」が答えそのものです。荒く見えているとき札が16なら荒くて当然、
+   18なら別の原因、と一目で決まります。
+   見た目は script の中で付けます。CSSに足すと、本体・ひな型・小窓の三か所に
+   同じものを書くことになり、書き漏らします。 */
+let numOn=false;
+function numBoxEl(){
+  let el=document.getElementById('numBox');
+  if(!el){
+    el=document.createElement('div'); el.id='numBox';
+    el.style.cssText='position:fixed;z-index:2900;pointer-events:none;display:none;'
+      +'background:rgba(26,33,28,.92);color:#fff;border-radius:4px;padding:7px 10px;'
+      +'font-family:ui-monospace,monospace;font-size:12px;line-height:1.7;white-space:pre;'
+      +'box-shadow:0 3px 12px rgba(0,0,0,.35)';
+    document.body.appendChild(el);
+  }
+  return el;
+}
+/* 実際に取りに行っている札のズームは、画像の名前から読みます。
+   .../{z}/{x}/{y}.jpg という形ですので、そこから z を拾います。
+   計算で出すと、思い込みがそのまま出ます。出ている物を読みます。 */
+function tileZoomNow(){
+  const zs={};
+  document.querySelectorAll('img.leaflet-tile').forEach(im=>{
+    const m=String(im.currentSrc||im.src||'').match(/\/(\d+)\/\d+\/\d+\.(?:png|jpg|jpeg)/i);
+    if(m) zs[m[1]]=(zs[m[1]]||0)+1;
+  });
+  const ks=Object.keys(zs);
+  if(!ks.length) return '—';
+  ks.sort((a,b)=>zs[b]-zs[a]);
+  return ks.map(k=>'z'+k+'('+zs[k]+'枚)').join(' ');
+}
+function numDraw(){
+  if(!numOn) return;
+  const el=numBoxEl(), vv=window.visualViewport;
+  const sc=(vv&&vv.scale)||1;
+  el.textContent =
+      'ページ ' + sc.toFixed(2) + '倍\n'
+    + '地図   z' + ((map&&map.getZoom)?map.getZoom():'?') + '\n'
+    + '札     ' + tileZoomNow() + '\n'
+    + '幅     ' + Math.round(vv?vv.width:innerWidth) + 'px';
+  el.style.transformOrigin='top left';
+  el.style.transform = (sc!==1) ? ('scale('+(1/sc)+')') : '';
+  el.style.left=Math.round((vv?vv.offsetLeft:0)+8)+'px';
+  el.style.top =Math.round((vv?vv.offsetTop :0)+8)+'px';
+}
+function setNum(on){
+  numOn=!!on;
+  numBoxEl().style.display = numOn?'block':'none';
+  const b=document.getElementById('numBtn');
+  if(b){ b.textContent = numOn?'数を消す':'数';
+         b.setAttribute('aria-pressed', numOn?'true':'false'); }
+  numDraw();
+}
+(function(){ const tick=()=>{ numDraw(); requestAnimationFrame(tick); };
+             requestAnimationFrame(tick); })();
 /* いま見えている真ん中が、地図のどこかを返します。
    ページを拡大しているときは、画面の真ん中と地図の真ん中が違います。 */
 function visibleCenterLatLng(){
@@ -89384,6 +89446,28 @@ function sayAtMap(text){
       if(t && t.textContent===text) t.hidden=true; }, 6000);
   }catch(e){ if(typeof flash==='function') flash(text); }
 }
+/* 地図の絵を、焼き直させます。
+   Leaflet は札を translate3d で置きます。そうするとブラウザはその部分を
+   別の板として持ち、一度だけ焼き付けます。ページをつまんだときに
+   粗い焼き付けのまま固定されると、そのあと縮小しても焼き直されません。
+   （拡大してからオンにすると、縮小しても荒いまま。実機で確認）
+   札そのものを作り直せば、新しい絵として焼かれます。
+   invalidateSize だけでは足りません。札の img は同じものが残ります。 */
+function refreshMapPaint(){
+  try{
+    if(typeof baseLayer!=='undefined' && baseLayer && baseLayer.redraw) baseLayer.redraw();
+    if(typeof overLayer!=='undefined' && overLayer && overLayer.redraw) overLayer.redraw();
+    const el=map.getContainer();
+    if(el){
+      // いったん測らせて、描き直しを起こします
+      const keep=el.style.willChange;
+      el.style.willChange='transform';
+      void el.offsetHeight;
+      el.style.willChange=keep||'';
+    }
+    if(map.invalidateSize) map.invalidateSize();
+  }catch(e){}
+}
 function setMapLive(on,quiet){
   /* 地図操作オンにするとき、ページが拡大されたままだと写真が荒いままです。
      ページの拡大は、絵を引き伸ばしているだけで、細かい札を取りに行きません。
@@ -89420,6 +89504,9 @@ function setMapLive(on,quiet){
   }
   mapLive=!!on;
   mapHandlers(mapLive);
+  /* 地図操作オンにするたび、絵を焼き直させます。
+     つまんだあとに粗い焼き付けが残っていても、ここで消えます。 */
+  if(mapLive) refreshMapPaint();
   const el=map.getContainer();
   if(el) el.classList.toggle('maplive',mapLive);
   const b=document.getElementById('mapMode');
@@ -89444,6 +89531,17 @@ function setMapLive(on,quiet){
   b.addEventListener('mousedown',ev=>ev.preventDefault());
   // 釦は「地図そのもの」の中へ。右上の箱に入れて縦に並べます
   el.appendChild(b);
+  /* 測る道具の釦（v176・原因が分かったら外します）。
+     地図操作オンの釦と同じ箱に入れますので、拡大しても大きさは一定です。 */
+  const nb=document.createElement('button');
+  nb.id='numBtn'; nb.type='button'; nb.textContent='数';
+  nb.setAttribute('aria-pressed','false');
+  nb.title='ページの拡大・地図のズーム・取りに行っている札のズームを、その場で出します';
+  nb.addEventListener('click',ev=>{ ev.stopPropagation(); setNum(!numOn); });
+  nb.addEventListener('mousedown',ev=>ev.preventDefault());
+  el.appendChild(nb);
+  if(window.L&&L.DomEvent){ L.DomEvent.disableClickPropagation(nb);
+                            L.DomEvent.disableScrollPropagation&&L.DomEvent.disableScrollPropagation(nb); }
   if(typeof mapCtlBox==='function') mapCtlBox();
   if(window.L&&L.DomEvent){ L.DomEvent.disableClickPropagation(b);
                             L.DomEvent.disableScrollPropagation&&L.DomEvent.disableScrollPropagation(b); }
@@ -89622,6 +89720,7 @@ const HINTS = {
   '#dupOff':  '押すと、重なっている記録の二つ目以降を一覧から外します',
   '#todoFix': '押すと、入力途中の記録を一件ずつ順に開きます。直すと次が出ます',
   '#topBtn':  '押すと、いちばん上（アプリの先頭）へ戻ります',
+  '#numBtn':  'ページの拡大・地図のズーム・取りに行っている札のズームを、その場で出します',
   '#todoBar': '押すと、入力途中の記録だけを一覧に出します。もう一度押すと元に戻ります',
   // 地図の切り替え
   '淡色':     '押すと、下の地図を淡い色の地図に切り替えます',
