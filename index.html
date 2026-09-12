@@ -89337,7 +89337,60 @@ function addTracks(list){
 let mapLive=false;
 const MAPH=['dragging','touchZoom','doubleClickZoom','scrollWheelZoom','boxZoom','keyboard'];
 function mapHandlers(on){ MAPH.forEach(h=>{ if(map[h]) on?map[h].enable():map[h].disable(); }); }
+/* いま見えている真ん中が、地図のどこかを返します。
+   ページを拡大しているときは、画面の真ん中と地図の真ん中が違います。 */
+function visibleCenterLatLng(){
+  try{
+    const vv=window.visualViewport, el=map.getContainer();
+    if(!el || typeof map.containerPointToLatLng!=='function') return map.getCenter();
+    const r=el.getBoundingClientRect();
+    const cx=(vv?vv.offsetLeft+vv.width/2:innerWidth/2);
+    const cy=(vv?vv.offsetTop +vv.height/2:innerHeight/2);
+    return map.containerPointToLatLng([cx-r.left, cy-r.top]);
+  }catch(e){ return map.getCenter(); }
+}
+/* ページの拡大を戻しにいきます。
+   viewport の指定を一瞬だけ差し替えます。効く機械と効かない機械があります。
+   戻したままにすると、そのあと指で拡大できなくなりますので、必ず戻します。 */
+function tryResetPageZoom(){
+  try{
+    const m=document.querySelector('meta[name=viewport]');
+    if(!m) return;
+    const keep=m.getAttribute('content');
+    m.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0');
+    setTimeout(()=>{ try{ m.setAttribute('content', keep); }catch(e){} }, 300);
+  }catch(e){}
+}
 function setMapLive(on,quiet){
+  /* 地図操作オンにするとき、ページが拡大されたままだと写真が荒いままです。
+     ページの拡大は、絵を引き伸ばしているだけで、細かい札を取りに行きません。
+     そこで、ページの拡大を地図の拡大に置き換えます。
+       ① 見えている真ん中と拡大率を控える
+       ② ページの拡大を戻しにいく
+       ③ 本当に戻ったか測る
+       ④ 戻っていれば、同じ倍率を地図のズームとして掛け直す
+     ③ を飛ばしてはいけません。戻せない機械でそのまま掛けると、
+     2倍のうえに2倍で4倍になり、行き過ぎます。 */
+  const _s0=(window.visualViewport && visualViewport.scale) || 1;
+  if(on && !mapLive && _s0>1.05){
+    const _ll=visibleCenterLatLng(), _z0=map.getZoom();
+    tryResetPageZoom();
+    setTimeout(()=>{
+      const s2=(window.visualViewport && visualViewport.scale) || 1;
+      if(s2<1.05){
+        const dz=Math.round(Math.log(_s0)/Math.LN2);
+        if(dz>0){
+          const mx=(typeof map.getMaxZoom==='function') ? map.getMaxZoom() : 19;
+          map.invalidateSize();
+          map.setView(_ll, Math.min(mx, _z0+dz));
+          if(typeof flash==='function')
+            flash('ページの拡大を、地図の拡大に置き換えました。写真が細かく出ます。');
+        }
+      }else if(typeof flash==='function'){
+        flash('ページを拡大したままです。指で元に戻してから地図をつまんで拡大すると、写真がきれいに見えます。');
+      }
+    }, 420);
+  }
   mapLive=!!on;
   mapHandlers(mapLive);
   const el=map.getContainer();
