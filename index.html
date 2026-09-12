@@ -89100,7 +89100,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.784918,134.379272],"zoom":9,"file":"徒歩軌跡 まとめ_20260912","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.511751,133.824635],"zoom":12,"file":"徒歩軌跡 まとめ_20260912","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -89629,6 +89629,9 @@ function hintFor(el){
 /* 説明は、カーソルや指のある場所のすぐ上に、小さな札で浮かせます。
    表の上に一行を置くと、押そうとしている釦から目を離して読みに行くことになり、
    読まれません。視線が動かずに読める場所に出します。 */
+/* 小札の幅の上限は、「TOPへ」の文字の何倍までにするか。
+   v170 の 1.0倍のときの姿（幅312px ÷ TOP文字15px ＝ 約20.8倍）に合わせています。 */
+const TIPW = 20;
 function hintTip(){
   let el=document.getElementById('tTip');
   if(!el){ el=document.createElement('div'); el.id='tTip'; el.hidden=true;
@@ -89643,11 +89646,28 @@ function showHint(t,x,yTop,yBottom,src){
   el.style.transform='';                             // いったん素の大きさに戻して測る
   /* 中央の枠に入れるものは、枠より広くならないようにします。
      測る前に幅を決めないと、枠からはみ出したまま測ることになります。 */
+  /* 「TOPへ」を物差しにします。拡大率という数は信じず、画面に出ているものを測ります。
+     v170まで visualViewport.scale から 1/zz を作っていましたが、実機では
+     拡大すると小札が大きくなりました。数と実物が合っていません。
+     「TOPへ」に実際に効いている縮尺を測り、小札にも同じものを掛けます。
+     こうすれば、数が合っていてもいなくても、二つの大きさは同じ割合に保たれます。 */
+  const zz = (window.visualViewport && visualViewport.scale) || 1;
+  const tbM = (typeof topBtnBox==='function') ? topBtnBox() : document.getElementById('topBtn');
+  let k = 1/zz, unit = 15;
+  if(tbM && tbM.offsetHeight){
+    const kk = tbM.getBoundingClientRect().height / tbM.offsetHeight;   // 実際に効いている縮尺
+    if(kk>0.02 && kk<50) k = kk;
+    const fs = parseFloat(getComputedStyle(tbM).fontSize);
+    if(fs>0) unit = fs;                                                  // 「TOPへ」の文字の大きさ
+  }
+  /* 枠の広さも「TOPへ」の文字を単位にします。
+     v170まで visualViewport.width から決めていたため、拡大するほど幅が狭まり、
+     4倍では幅73px・高さ222px の縦棒になっていました。 */
   (function(){
-    const v=window.visualViewport;
-    const vw=v?v.width:innerWidth;
-    const fw=Math.min(vw-24, Math.max(240, vw*0.8));
     const coarse=!!(window.matchMedia && matchMedia('(pointer:coarse)').matches);
+    const v=window.visualViewport;
+    const fit=((v?v.width:innerWidth)-24)/k;        // 画面に収まる上限（小札の版面での値）
+    const fw=Math.max(120, Math.min(unit*TIPW, fit));
     el.style.maxWidth = coarse ? (Math.floor(fw)+'px') : '';
   })();
   const r0=el.getBoundingClientRect();
@@ -89655,11 +89675,10 @@ function showHint(t,x,yTop,yBottom,src){
      getBoundingClientRect() の値は拡大の影響を受けません。画面では拡大率の分だけ
      大きく見えますので、見た目を一定にするには割った値を使います。
      小札は釦の箱の外にあるので、箱にかけた scale は効きません。別に補正します。 */
-  const zz = (window.visualViewport && visualViewport.scale) || 1;
-  el.style.transform = (zz!==1) ? ('scale(' + (1/zz) + ')') : '';
+  el.style.transform = (k!==1) ? ('scale(' + k + ')') : '';
   el.style.transformOrigin = 'top left';
-  const GAP = 10/zz;
-  const r = { width: r0.width/zz, height: r0.height/zz };
+  const GAP = 10*k;
+  const r = { width: r0.width*k, height: r0.height*k };
   /* スマホの地図の釦に触れたときは、釦の箱の下に出します。
      上には余地がなく、重ねると釦が隠れるためです。 */
   const ctl=document.getElementById('mapCtl');
