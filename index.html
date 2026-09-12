@@ -89100,7 +89100,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.511751,133.824635],"zoom":12,"file":"徒歩軌跡 まとめ_20260912","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260912","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -89629,6 +89629,31 @@ function hintFor(el){
 /* 説明は、カーソルや指のある場所のすぐ上に、小さな札で浮かせます。
    表の上に一行を置くと、押そうとしている釦から目を離して読みに行くことになり、
    読まれません。視線が動かずに読める場所に出します。 */
+/* 拡大して動かしたとき、札を逃がす先。画面の高さの中央30%の帯です。
+   上の箱とも下の「TOPへ」ともぶつからない、いつでも空いている場所です。 */
+const BAND_A = 0.35, BAND_B = 0.65;
+/* 札を帯へ逃がしたときに立てる印。ふだんの置き直しと取り違えないためです。 */
+function tipToBand(el){
+  const vv = window.visualViewport;
+  const VT = vv ? vv.offsetTop : 0, VH = vv ? vv.height : innerHeight;
+  const VL = vv ? vv.offsetLeft : 0, VW = vv ? vv.width : innerWidth;
+  /* 拡大するほど、見えている範囲は狭くなります（3倍で幅130px）。
+     札の幅は「TOPへ」の文字の20倍＝300px ですので、そのままでは入りません。
+     ふだんの置き方には押し込みがありますが、この逃がし道にはありませんでした。
+     縦だけ直して横を忘れ、札が画面の外へ出ていました（v172の作りかけで確認）。
+     先に幅を詰めてから置きます。 */
+  const kk = (el.offsetWidth>0) ? (el.getBoundingClientRect().width/el.offsetWidth) : 1;
+  const fit = Math.floor((VW-12)/(kk||1));
+  if(fit>60) el.style.maxWidth = fit+'px';
+  const r = el.getBoundingClientRect();
+  let T = VT + VH*(BAND_A+BAND_B)/2 - r.height/2;
+  T = Math.max(VT+6, Math.min(T, VT+VH-r.height-6));
+  let L = VL + VW/2 - r.width/2;
+  L = Math.max(VL+6, Math.min(L, VL+VW-r.width-6));
+  el.style.top  = Math.round(parseFloat(el.style.top ||0) + (T - r.top )) + 'px';
+  el.style.left = Math.round(parseFloat(el.style.left||0) + (L - r.left)) + 'px';
+  el.dataset.band = '1';
+}
 /* 小札の幅の上限は、「TOPへ」の文字の何倍までにするか。
    v170 の 1.0倍のときの姿（幅312px ÷ TOP文字15px ＝ 約20.8倍）に合わせています。 */
 const TIPW = 20;
@@ -89642,6 +89667,7 @@ function showHint(t,x,yTop,yBottom,src){
   const el=hintTip();
   if(!t){ el.hidden=true; return; }
   el.textContent=t; el.hidden=false;
+  if(el.dataset) el.dataset.band='';          // 新しく出すので、逃がした印は消します
   el.style.left='0px'; el.style.top='0px';
   el.style.transform='';                             // いったん素の大きさに戻して測る
   /* 中央の枠に入れるものは、枠より広くならないようにします。
@@ -90736,9 +90762,17 @@ function keepSize(){
         if(!(cr2.bottom < br2.top - 2 || cr2.top > br2.bottom + 2)) off = true;
       }
       box.style.visibility = off ? 'hidden' : '';
-      /* 釦が消えているのに説明だけ残っては、何の説明か分かりません。一緒に消します。 */
+      /* 地図が戻ってきたら、逃がした印を消します。次の置き直しで釦の近くへ戻ります。 */
+      if(!off && tip && tip.dataset && tip.dataset.band==='1') tip.dataset.band='';
+      /* 地図の箱が隠れても、説明は消しません（v172）。
+         拡大して動かすと地図が見えている範囲から外れ、箱ごと隠れます。
+         v171まではそこで説明も消していました。決めごととしては筋が通りますが、
+         実際に使うと、説明を読もうとして拡大した、その手つきで消えてしまいます。
+         （3倍・下へ560px、4倍・下へ630px で消えました）
+         釦の近くには置けなくなりますので、画面の中央30%の帯へ逃がして残します。
+         帯は上の箱とも「TOPへ」ともぶつからない、いつでも空いている場所です。 */
       if(off && tip && !tip.hidden && tip.dataset && tip.dataset.forMap==='1'){
-        tip.hidden = true;
+        tipToBand(tip);
       }
     }else{
       box.style.position=''; box.style.left=''; box.style.top='';
@@ -90761,6 +90795,11 @@ function keepSize(){
   if(tip && !tip.hidden && tip.__btn && !window.__tipPlacing){
     const btn = tip.__btn;
     if(!document.contains(btn)){ tip.hidden = true; }
+    else if(tip.dataset && tip.dataset.band==='1'){
+      /* 帯へ逃がしてある間は、釦の近くへ置き直しません。
+         置き直すと、隠れている釦を追いかけて、また画面の外へ出ます。 */
+      tipToBand(tip);
+    }
     else {
       const br = btn.getBoundingClientRect();
       const vt = (vv ? vv.offsetTop : 0), vb = vt + (vv ? vv.height : innerHeight);
