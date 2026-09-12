@@ -89322,7 +89322,7 @@ function addTracks(list){
     const mr=nm.match(/半径\s*(\d{2,4})\s*m/);
     const line=L.polyline(t.pts.map(p=>[p[0],p[1]]),
       area?{color:AREA,weight:2,opacity:.95,dashArray:'2 4',lineCap:'round',fill:false,renderer:paint}
-          :{color:TRACK,weight:4,opacity:.95,renderer:paint}).addTo(map);
+          :{color:TRACK,weight:2,opacity:.95,renderer:paint}).addTo(map);
     bindHover(line);
     tracks.push({id:++tid,name:nm,grp:t.grp||'',kind:area?'area':'route',r:mr?+mr[1]:null,
                  pts:t.pts,line,on:true,s:shape(t.pts)});
@@ -89818,7 +89818,11 @@ function fitAll(){
 function fitChecked(){
   const on=tracks.filter(t=>t.on);
   if(!on.length) return;
-  const b=L.featureGroup(on.map(t=>t.line)).getBounds();
+  /* 本体と同じ。集計表の絞りを先に解いてから、出す条件（isShown）で選びます。 */
+  if(pickSet||dayPick||whoPick||cityPick) clearPick();
+  const shown=tracks.filter(isShown);
+  if(!shown.length) return;
+  const b=L.featureGroup(shown.map(t=>t.line)).getBounds();
   if(!b.isValid()) return;
   const el=document.getElementById('map');
   if(el.scrollIntoView) el.scrollIntoView({behavior:'smooth',block:'start'});
@@ -89840,8 +89844,8 @@ function showAll(v){
 }
 // 一覧の名前を押したとき：その経路を表示して、拡大して、太く見せる
 let selId=null, tid=0;
-function baseWeight(t){ return t.kind==='area'?2:4; }
-function selWeight(t){ return t.kind==='area'?4:7; }
+function baseWeight(t){ return t.kind==='area'?2:2; }   /* v169: ピンクを半分に（4→2）*/
+function selWeight(t){ return t.kind==='area'?4:3.5; }  /* v169: ピンクを半分に（7→3.5）*/
 let pop=null;
 function thin(pts,max){
   if(pts.length<=max) return pts;
@@ -89893,7 +89897,7 @@ function popOpen(t,ev){
   const area=t.kind==='area';
   const line=L.polyline(thin(t.pts,2000).map(p=>[p[0],p[1]]),
     area?{color:AREA,weight:2,opacity:.95,dashArray:'2 4',lineCap:'round',fill:false,smoothFactor:1.5}
-        :{color:TRACK,weight:5,opacity:.95,smoothFactor:1.5}).addTo(m);
+        :{color:TRACK,weight:2.5,opacity:.95,smoothFactor:1.5}).addTo(m);
   m.invalidateSize();
   m.fitBounds(line.getBounds().pad(0.12));
 }
