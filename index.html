@@ -93585,7 +93585,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.844832],"zoom":10,"file":"徒歩軌跡 まとめ_20260914","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654109,133.844376],"zoom":10,"file":"徒歩軌跡 まとめ_20260914","from":"","to":"","venueOnly":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -95370,15 +95370,36 @@ function howtoBtnBox(){
   }
   return b;
 }
+/* 同じ画面の上に重ねて出します。
+   v181 まで window.open で別の窓を開いていました。パソコンでは開きますが、
+   スマホ（とくにアプリの中のブラウザ）では別窓が塞がれます。
+   しかも window.open は null を返さないことがあり、
+   「開けませんでした」の知らせすら出ないまま、押しても何も起きませんでした。
+   別窓に頼らなければ、どの機械でも確実に開きます。 */
+function howtoOpen(){
+  let ov=document.getElementById('howtoOv');
+  if(ov){ ov.hidden=false; ov.scrollTop=0; return; }
+  ov=document.createElement('div');
+  ov.id='howtoOv';
+  ov.style.cssText='position:fixed; inset:0; z-index:4000; background:#fff;'
+    +'overflow-y:auto; -webkit-overflow-scrolling:touch;';
+  const bar=document.createElement('div');
+  bar.style.cssText='position:sticky; top:0; z-index:1; display:flex; justify-content:flex-end;'
+    +'padding:8px 10px; background:#fff; border-bottom:1px solid #c9d3cc;';
+  const x=document.createElement('button');
+  x.id='howtoClose'; x.type='button'; x.textContent='閉じる';
+  x.style.cssText='border:2px solid #00854A; background:#fff; color:#00854A;'
+    +'border-radius:4px; font-weight:700; font-size:15px; line-height:20px;'
+    +'min-height:44px; padding:10px 18px; cursor:pointer;';
+  x.addEventListener('click',()=>{ ov.hidden=true; });
+  bar.appendChild(x);
+  const body=document.createElement('div');
+  body.innerHTML=HOWTO;
+  ov.appendChild(bar); ov.appendChild(body);
+  document.body.appendChild(ov);
+}
 function howtoWire(b){
-  b.addEventListener('click',()=>{
-    const w=window.open('','_blank');
-    if(!w){ alert('別の画面を開けませんでした。ブラウザの設定をご確認ください。'); return; }
-    w.document.write('<!doctype html><html lang="ja"><head><meta charset="utf-8">'
-      +'<meta name="viewport" content="width=device-width, initial-scale=1">'
-      +'<title>チラシ配布の地図 ― 使い方</title></head><body>'+HOWTO+'</body></html>');
-    w.document.close();
-  });
+  b.addEventListener('click',()=>{ howtoOpen(); });
 }
 function keepSize(){
   const vv = window.visualViewport;
