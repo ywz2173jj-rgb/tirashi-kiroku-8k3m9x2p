@@ -59,9 +59,22 @@ body{
   border:1px solid var(--rule);border-radius:2px 2px 0 0;background:#E8EBE5}
 .leaflet-container{font-family:var(--jp)}
 .deck{background:#fff;border:1px solid var(--rule);border-top:none;border-radius:0 0 2px 2px;padding:11px 13px 12px}
-.deck .grp{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-bottom:8px}
+.deck /* 見出しと札を、一行に収めます（v181）。
+   幅が足りないと flex-wrap で折り返し、見出しと札が二段になっていました。
+   札の文字を短くした（白地図→白地 など）ぶんで収まります。
+   それでも入らない機械では、横になぞって見られるようにしておきます。
+   折り返しを止めるだけだと、はみ出した札に手が届きません。 */
+.grp{display:flex;flex-wrap:nowrap;align-items:center;gap:7px;margin-bottom:8px;
+     overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.grp>span[id]{display:flex;gap:7px;flex:none}
+/* 札の横の余白を詰めます。52pxの見出しを足しても、幅390pxの画面に収めるためです。
+   縦は詰めません。44pxは指で確実に押せる下限で、これは割りません。 */
+.grp .chip{flex:none;white-space:nowrap;padding-left:9px;padding-right:9px}
 .deck .grp:last-child{margin-bottom:0}
-.deck .lb{font-size:11.5px;color:var(--muted);width:72px;flex:none;letter-spacing:.03em}
+.deck /* 見出しの幅を詰めます（v181）。72pxのままだと、札と合わせて367pxになり、
+   幅390pxの画面（中身330px）に37px入りません。 */
+.lb{font-size:11.5px;color:var(--muted);width:52px;flex:none;letter-spacing:.03em;
+    line-height:1.2;align-self:center}
 .chip{border:1px solid var(--rule);background:#fff;border-radius:2px;padding:5px 11px;font-size:12.5px;color:var(--ink)}
 .chip:hover{border-color:var(--act);color:var(--act)}
 .chip.on{background:var(--act);border-color:var(--act);color:#fff;font-weight:600}
@@ -338,7 +351,10 @@ input, textarea, select{ border-radius:3px; }
    一覧が長いので、上まで指でなぞって戻るのは大儀です。 */
 /* スマホ・タブレット・パソコン、どれでも出します。
    一覧が長いのはどの機械でも同じで、指の画面だけに限ってはいけません。 */
-#topBtn, #howtoBtn{ position:fixed; z-index:1300; display:block;
+/* 二つの高さを、文字によらず揃えます。
+   「使い方」（日本語）と「TOP」（英字）では行の高さが違い、36pxと34pxになりました。
+   指定は同じでも、中身の文字で変わります。行の高さを決め打ちして揃えます。 */
+#topBtn, #howtoBtn{ position:fixed; z-index:1300; display:block; line-height:20px;
          border:2px solid var(--go); background:#fff; color:var(--go);
          border-radius:4px; font-weight:700; cursor:pointer;
          font-size:13px; min-height:34px; padding:7px 14px;
@@ -93651,12 +93667,22 @@ let overLayer=OVERS[overName]?mk(OVERS[overName],opacity).addTo(map):null;
 document.getElementById('op').value=Math.round(opacity*100);
 document.getElementById('opv').textContent=Math.round(opacity*100)+'%';
 
+/* 画面に出す文字だけを短くします。鍵（BASES・OVERS の名前）は変えません。
+   鍵は、保存した地図つきHTMLの中に「どの地図を選んでいたか」として
+   書き込まれています。変えると古いファイルを開いたときに読めず、
+   地図が既定に戻ります。出す文字と鍵は、別のものです。 */
+const CHIPLABEL = {
+  '白地図':'白地', '店舗名':'店舗',
+  '陰影起伏図':'陰影', '色別標高図':'標高', '傾斜量図':'傾斜'
+};
+function chipLabel(n){ return CHIPLABEL[n] || n; }
 function chips(host,names,cur,pick){
   const el=document.getElementById(host); el.innerHTML='';
   names.forEach(n=>{
     const b=document.createElement('button');
     b.className='chip'+(n===cur?' on':'');
-    b.textContent=n;
+    b.textContent=chipLabel(n);
+    b.title=n;                                   // 正しい名は、触れれば出ます
     b.addEventListener('click',()=>pick(n));
     el.appendChild(b);
   });
@@ -94178,6 +94204,11 @@ function hintByTable(b){
   if(b.id && HINTS['#'+b.id]) return HINTS['#'+b.id];
   const txt=(b.textContent||'').trim().replace(/：(する|しない)$/,'').replace(/\s+/g,'');
   if(HINTS[txt]) return HINTS[txt];
+  /* 画面の文字を短くした札（白地図→白地 など）は、短い文字では表に載っていません。
+     正式名は title に入れてありますので、そちらでも引きます。
+     短くするたびに表を書き換える形にすると、いずれ書き漏らします。 */
+  const full = b.getAttribute && b.getAttribute('title');
+  if(full && HINTS[full]) return HINTS[full];
   if(/^支部・月で分ける/.test(txt))
     return /する$/.test((b.textContent||'').trim())
       ? '押すと、一覧を支部と月で分けて並べます' : '押すと、一覧を分けずに一続きで並べます';
@@ -95308,7 +95339,7 @@ function topBtnBox(){
   let b=document.getElementById('topBtn');
   if(!b){
     b=document.createElement('button');
-    b.id='topBtn'; b.type='button'; b.textContent='TOPへ';
+    b.id='topBtn'; b.type='button'; b.textContent='TOP';
     /* 瞬時に切り替えます。なめらかに送ると、長い一覧では数秒かかります。 */
     b.addEventListener('click',()=>{ window.scrollTo(0,0);
       if(document.documentElement) document.documentElement.scrollTop=0;
