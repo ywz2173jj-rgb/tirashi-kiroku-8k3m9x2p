@@ -110174,7 +110174,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"淡色","over":"なし","opacity":0.3,"center":[34.576134,133.667736],"zoom":12,"file":"徒歩軌跡 まとめ_20260921","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.576988,133.64851],"zoom":12,"file":"徒歩軌跡 まとめ_20260921","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -110533,9 +110533,9 @@ function bindHover(line){
      ・円は、細い点線の輪の上しか当たりになりません
      ・LINE のブラウザは、合図の出し方が普通のブラウザと違います
    地図の部品に頼らず、指が触れた所から近い線を自分で探して開きます。
-     ・線や円に0.15秒指を置くと、出してロックする（v214）
+     ・線や円に0.1秒指を置くと、出してロックする（v214で0.15秒、v217で0.1秒）
        軽く押してすぐ離したときも、線や円の上なら出す
-     ・関係ない所（地図の何も無い所・地図の外）に0.15秒指を置くと消す（v214）
+     ・関係ない所（地図の何も無い所・地図の外）に0.4秒指を置くと消す（v214で0.15秒、v217で0.4秒）
        軽く押してすぐ離しただけでは消さない（ロックを守る）
      ・出したコメントは10秒で自動で消す（v212で6秒、v214で10秒）
      ・なぞって地図や画面を動かしているときは出さない
@@ -110548,8 +110548,9 @@ function bindHover(line){
   if(!COARSE) return;
   const el=(map&&map.getContainer)?map.getContainer():null;
   if(!el) return;
-  const TOL=22, MOVE=10, HOLD=150, SHOW=10000; // 当たりしろ(px)・動いたとみなす幅(px)・長押し(ms)・出しておく時間(ms)
-  let sx=0, sy=0, moved=false, held=false, timer=null, openOn=null, closeT=null;
+  const TOL=22, MOVE=10, HOLD=100, HIDE=400, SHOW=10000;
+  // 当たりしろ(px)・動いたとみなす幅(px)・出すまで(ms)・消すまで(ms)・出しておく時間(ms)
+  let sx=0, sy=0, moved=false, held=false, timer=null, timer2=null, openOn=null, closeT=null;
   const segDist=(p,a,b)=>{
     const dx=b.x-a.x, dy=b.y-a.y, L2=dx*dx+dy*dy;
     let t=L2?((p.x-a.x)*dx+(p.y-a.y)*dy)/L2:0; t=Math.max(0,Math.min(1,t));
@@ -110599,23 +110600,33 @@ function bindHover(line){
   }
   window.__touchHit=touchHit;                // 検証から呼べるように
   el.addEventListener('touchstart',ev=>{
-    clearTimeout(timer);
+    clearTimeout(timer); clearTimeout(timer2);
     if(!ev.touches||ev.touches.length!==1){ moved=true; return; }   // 二本指はつまむ操作
     const p=ev.touches[0]; sx=p.clientX; sy=p.clientY; moved=false; held=false;
-    timer=setTimeout(()=>{ if(!moved){ held=true; showAt(sx,sy,true); } }, HOLD);
+    /* 出すのと消すのとで、待つ時間を分けます（v217）。
+       線や円の上なら0.1秒で出す。何も無い所なら0.4秒で消す。
+       どちらに当たるかは、その時に測り直します（待つあいだに地図が動くことがあるため）。 */
+    timer=setTimeout(()=>{
+      if(moved) return;
+      if(touchHit(sx,sy)){ held=true; showAt(sx,sy,false); }
+    }, HOLD);
+    timer2=setTimeout(()=>{
+      if(moved||held) return;
+      if(!touchHit(sx,sy)){ held=true; closeAll(); }
+    }, HIDE);
   },{passive:true});
   el.addEventListener('touchmove',ev=>{
     const p=ev.touches&&ev.touches[0]; if(!p) return;
-    if(Math.abs(p.clientX-sx)>MOVE||Math.abs(p.clientY-sy)>MOVE){ moved=true; clearTimeout(timer); }
+    if(Math.abs(p.clientX-sx)>MOVE||Math.abs(p.clientY-sy)>MOVE){ moved=true; clearTimeout(timer); clearTimeout(timer2); }
   },{passive:true});
   el.addEventListener('touchend',ev=>{
-    clearTimeout(timer);
+    clearTimeout(timer); clearTimeout(timer2);
     if(moved||held) return;                  // なぞった、または長押しで出したあと
     const p=(ev.changedTouches&&ev.changedTouches[0])||{clientX:sx,clientY:sy};
     showAt(p.clientX,p.clientY,false);         // 軽く押しただけでは消さない（v214）
   },{passive:true});
-  el.addEventListener('touchcancel',()=>{ clearTimeout(timer); },{passive:true});
-  /* 地図の外に0.15秒指を置いたときも消します（v214）。
+  el.addEventListener('touchcancel',()=>{ clearTimeout(timer); clearTimeout(timer2); },{passive:true});
+  /* 地図の外に0.4秒指を置いたときも消します（v214、v217で0.15秒→0.4秒）。
      軽く押してすぐ離しただけ、なぞって画面を送っただけでは消しません。 */
   let ox=0, oy=0, omoved=false, otimer=null;
   document.addEventListener('touchstart',ev=>{
@@ -110623,7 +110634,7 @@ function bindHover(line){
     if(el.contains(ev.target)) return;         // 地図の中は上で扱います
     if(!openOn||!ev.touches||ev.touches.length!==1) return;
     const p=ev.touches[0]; ox=p.clientX; oy=p.clientY; omoved=false;
-    otimer=setTimeout(()=>{ if(!omoved) closeAll(); }, HOLD);
+    otimer=setTimeout(()=>{ if(!omoved) closeAll(); }, HIDE);
   },{passive:true, capture:true});
   document.addEventListener('touchmove',ev=>{
     const p=ev.touches&&ev.touches[0]; if(!p) return;
@@ -112327,13 +112338,13 @@ let geoOn=false, geoWatch=null, geoDot=null, geoRing=null;
 let geoFollow=false;
 function geoStopFollow(){ geoFollow=false; }
 /* 自分の位置の点を点滅させます（v216・本人の決め）。
-   真ん中の小さな点だけを、青と明るい水色で0.5秒ごとに切り替えます。
+   真ん中の小さな点だけを、青と明るい水色で1.5秒ごとに切り替えます（v216で0.5秒、v217で1.5秒）。
    誤差の輪は青のまま動かしません（大きいので、点滅させると地図がちらつきます）。
    明るい水色は、配布経路に指を置いたときのシアン（#00E5FF）と取り違えないよう、
    白っぽく淡い色にしています。
    0.5秒ごとの切り替えは1秒に2回で、光の点滅で気分が悪くなる目安
    （1秒に3回を超える点滅）より少なく収まります。 */
-const GEO_BLUE='#1E5FD0', GEO_LIGHT='#7FD4FF', GEO_BLINK=500;
+const GEO_BLUE='#1E5FD0', GEO_LIGHT='#7FD4FF', GEO_BLINK=1500;   // v217で0.5秒→1.5秒（3倍）
 let geoBlinkT=null, geoBlinkOn=false;
 function geoBlinkStart(){
   if(geoBlinkT) return;
