@@ -110174,7 +110174,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"淡色","over":"なし","opacity":0.3,"center":[34.575046,133.680394],"zoom":11,"file":"徒歩軌跡 まとめ_20260921","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.573881,133.667736],"zoom":12,"file":"徒歩軌跡 まとめ_20260921","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -110533,7 +110533,7 @@ function bindHover(line){
      ・円は、細い点線の輪の上しか当たりになりません
      ・LINE のブラウザは、合図の出し方が普通のブラウザと違います
    地図の部品に頼らず、指が触れた所から近い線を自分で探して開きます。
-     ・押して離す／押したまま置く（0.2秒）、どちらでも出す（v212で0.35秒→0.2秒）
+     ・押して離す／押したまま置く（0.12秒）、どちらでも出す（0.35秒→v212で0.2秒→v213で0.12秒）
      ・出したコメントは6秒で自動で消す（v212）
      ・なぞって地図や画面を動かしているときは出さない
      ・円は、輪の上だけでなく内側でも出す（重なれば、いちばん小さい円）
@@ -110545,7 +110545,7 @@ function bindHover(line){
   if(!COARSE) return;
   const el=(map&&map.getContainer)?map.getContainer():null;
   if(!el) return;
-  const TOL=22, MOVE=10, HOLD=200, SHOW=6000; // 当たりしろ(px)・動いたとみなす幅(px)・長押し(ms)・出しておく時間(ms)
+  const TOL=22, MOVE=10, HOLD=120, SHOW=6000; // 当たりしろ(px)・動いたとみなす幅(px)・長押し(ms)・出しておく時間(ms)
   let sx=0, sy=0, moved=false, held=false, timer=null, openOn=null, closeT=null;
   const segDist=(p,a,b)=>{
     const dx=b.x-a.x, dy=b.y-a.y, L2=dx*dx+dy*dy;
