@@ -110533,7 +110533,8 @@ function bindHover(line){
      ・円は、細い点線の輪の上しか当たりになりません
      ・LINE のブラウザは、合図の出し方が普通のブラウザと違います
    地図の部品に頼らず、指が触れた所から近い線を自分で探して開きます。
-     ・押して離す／押したまま置く（0.35秒）、どちらでも出す
+     ・押して離す／押したまま置く（0.2秒）、どちらでも出す（v212で0.35秒→0.2秒）
+     ・出したコメントは6秒で自動で消す（v212）
      ・なぞって地図や画面を動かしているときは出さない
      ・円は、輪の上だけでなく内側でも出す（重なれば、いちばん小さい円）
      ・線と円が両方当たれば、線を先にする（線のほうが狙いが細かいため）
@@ -110544,8 +110545,8 @@ function bindHover(line){
   if(!COARSE) return;
   const el=(map&&map.getContainer)?map.getContainer():null;
   if(!el) return;
-  const TOL=22, MOVE=10, HOLD=350;          // 当たりしろ(px)・動いたとみなす幅(px)・長押し(ms)
-  let sx=0, sy=0, moved=false, held=false, timer=null, openOn=null;
+  const TOL=22, MOVE=10, HOLD=200, SHOW=6000; // 当たりしろ(px)・動いたとみなす幅(px)・長押し(ms)・出しておく時間(ms)
+  let sx=0, sy=0, moved=false, held=false, timer=null, openOn=null, closeT=null;
   const segDist=(p,a,b)=>{
     const dx=b.x-a.x, dy=b.y-a.y, L2=dx*dx+dy*dy;
     let t=L2?((p.x-a.x)*dx+(p.y-a.y)*dy)/L2:0; t=Math.max(0,Math.min(1,t));
@@ -110577,6 +110578,7 @@ function bindHover(line){
     return best||ring;
   }
   function closeAll(){
+    clearTimeout(closeT); closeT=null;
     tracks.forEach(t=>{ try{ if(t&&t.line&&t.line.closeTooltip) t.line.closeTooltip(); }catch(e){} });
     openOn=null;
   }
@@ -110588,6 +110590,8 @@ function bindHover(line){
       const r=el.getBoundingClientRect();
       const ll=map.containerPointToLatLng([cx-r.left, cy-r.top]);
       t.line.openTooltip(ll); openOn=t;
+      clearTimeout(closeT);                    // 出すたびに数え直し、6秒で消します（v212）
+      closeT=setTimeout(closeAll, SHOW);
     }catch(e){}
   }
   window.__touchHit=touchHit;                // 検証から呼べるように
