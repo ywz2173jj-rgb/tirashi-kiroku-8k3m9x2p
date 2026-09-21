@@ -110174,7 +110174,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.554059,133.716316],"zoom":11,"file":"徒歩軌跡 まとめ_20260921","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
+<script id="view" type="application/json">{"base":"淡色","over":"なし","opacity":0.3,"center":[34.575046,133.680394],"zoom":11,"file":"徒歩軌跡 まとめ_20260921","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -110521,9 +110521,94 @@ function bindHover(line){
     const me=tracks.find(x=>x.line===line);
     if(me) hoverOff(me);                           // 元の色に戻す（v185）
   });
-  // 指の画面では、触れた（押した）ところで内容を出します
-  if(COARSE) line.on('click', ev=>{ if(line.getTooltip && line.getTooltip()) line.openTooltip(ev.latlng); });
+  /* 指の画面では、地図の部品の「乗せた・押した」では開かせません（v211）。
+     指の当たりは、下の touchHit が一手に受け持ちます。
+     二か所で開くと、違う線の吹き出しが二つ開くことがあるためです。 */
+  if(COARSE && line.off) line.off({mouseover:line._openTooltip, click:line._openTooltip});
 }
+/* ---------- 指で触れたときの吹き出し（v211） ----------
+   iPhone の LINE の中で、線や円に指を置いても吹き出しが出ませんでした。
+   これまでは地図の部品（Leaflet）が「押した」の合図を受けて開く仕掛けでした。
+     ・押したまま離さない（長押し）では、「押した」の合図が出ません
+     ・円は、細い点線の輪の上しか当たりになりません
+     ・LINE のブラウザは、合図の出し方が普通のブラウザと違います
+   地図の部品に頼らず、指が触れた所から近い線を自分で探して開きます。
+     ・押して離す／押したまま置く（0.35秒）、どちらでも出す
+     ・なぞって地図や画面を動かしているときは出さない
+     ・円は、輪の上だけでなく内側でも出す（重なれば、いちばん小さい円）
+     ・線と円が両方当たれば、線を先にする（線のほうが狙いが細かいため）
+     ・地図操作オン・オフ、どちらでも出す
+     ・地図の、何も無い所を押すと消す
+   合図はすべて passive で受けます。既定の動き（画面を送る・地図を動かす）は止めません。 */
+(function(){
+  if(!COARSE) return;
+  const el=(map&&map.getContainer)?map.getContainer():null;
+  if(!el) return;
+  const TOL=22, MOVE=10, HOLD=350;          // 当たりしろ(px)・動いたとみなす幅(px)・長押し(ms)
+  let sx=0, sy=0, moved=false, held=false, timer=null, openOn=null;
+  const segDist=(p,a,b)=>{
+    const dx=b.x-a.x, dy=b.y-a.y, L2=dx*dx+dy*dy;
+    let t=L2?((p.x-a.x)*dx+(p.y-a.y)*dy)/L2:0; t=Math.max(0,Math.min(1,t));
+    const x=a.x+t*dx-p.x, y=a.y+t*dy-p.y; return Math.sqrt(x*x+y*y);
+  };
+  const flat=a=>(a&&a.length&&Array.isArray(a[0]))
+                 ?a.reduce((s,x)=>s.concat(flat(x)),[]):(a||[]);
+  function touchHit(cx,cy){
+    const r=el.getBoundingClientRect();
+    const p={x:cx-r.left, y:cy-r.top};
+    let best=null, bd=Infinity, ring=null, rr=Infinity;
+    for(const t of tracks){
+      if(!t||!t.line||!isShown(t)||!t.line.getLatLngs) continue;
+      const ll=flat(t.line.getLatLngs());
+      if(ll.length<2) continue;
+      const q=ll.map(z=>map.latLngToContainerPoint(z));
+      let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;   // 先に枠でふるい落とす
+      for(const z of q){ if(z.x<x0)x0=z.x; if(z.x>x1)x1=z.x; if(z.y<y0)y0=z.y; if(z.y>y1)y1=z.y; }
+      if(p.x<x0-TOL||p.x>x1+TOL||p.y<y0-TOL||p.y>y1+TOL) continue;
+      let d=Infinity;
+      for(let i=1;i<q.length;i++){ d=Math.min(d,segDist(p,q[i-1],q[i])); if(d<1) break; }
+      if(d<=TOL && d<bd){ best=t; bd=d; }
+      if(t.kind==='area'){                      // 円の内側か
+        const mx=q.reduce((s,z)=>s+z.x,0)/q.length, my=q.reduce((s,z)=>s+z.y,0)/q.length;
+        const rad=q.reduce((s,z)=>s+Math.hypot(z.x-mx,z.y-my),0)/q.length;
+        if(Math.hypot(p.x-mx,p.y-my)<=rad && rad<rr){ ring=t; rr=rad; }
+      }
+    }
+    return best||ring;
+  }
+  function closeAll(){
+    tracks.forEach(t=>{ try{ if(t&&t.line&&t.line.closeTooltip) t.line.closeTooltip(); }catch(e){} });
+    openOn=null;
+  }
+  function showAt(cx,cy){
+    const t=touchHit(cx,cy);
+    if(!t){ closeAll(); return; }
+    if(openOn && openOn!==t) closeAll();
+    try{
+      const r=el.getBoundingClientRect();
+      const ll=map.containerPointToLatLng([cx-r.left, cy-r.top]);
+      t.line.openTooltip(ll); openOn=t;
+    }catch(e){}
+  }
+  window.__touchHit=touchHit;                // 検証から呼べるように
+  el.addEventListener('touchstart',ev=>{
+    clearTimeout(timer);
+    if(!ev.touches||ev.touches.length!==1){ moved=true; return; }   // 二本指はつまむ操作
+    const p=ev.touches[0]; sx=p.clientX; sy=p.clientY; moved=false; held=false;
+    timer=setTimeout(()=>{ if(!moved){ held=true; showAt(sx,sy); } }, HOLD);
+  },{passive:true});
+  el.addEventListener('touchmove',ev=>{
+    const p=ev.touches&&ev.touches[0]; if(!p) return;
+    if(Math.abs(p.clientX-sx)>MOVE||Math.abs(p.clientY-sy)>MOVE){ moved=true; clearTimeout(timer); }
+  },{passive:true});
+  el.addEventListener('touchend',ev=>{
+    clearTimeout(timer);
+    if(moved||held) return;                  // なぞった、または長押しで出したあと
+    const p=(ev.changedTouches&&ev.changedTouches[0])||{clientX:sx,clientY:sy};
+    showAt(p.clientX,p.clientY);
+  },{passive:true});
+  el.addEventListener('touchcancel',()=>{ clearTimeout(timer); },{passive:true});
+})();
 function addTracks(list){
   list.forEach((t,i)=>{
     const nm=t.name||(list.length>1?`経路 ${i+1}`:'徒歩軌跡');
