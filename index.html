@@ -110174,7 +110174,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"淡色","over":"なし","opacity":0.3,"center":[34.575857,133.630314],"zoom":12,"file":"徒歩軌跡 まとめ_20260921","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
+<script id="view" type="application/json">{"base":"淡色","over":"なし","opacity":0.3,"center":[34.575864,133.666706],"zoom":12,"file":"徒歩軌跡 まとめ_20260921","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -112315,6 +112315,17 @@ const HOWTO = "<style>:root{ --ink:#1a211c; --go:#00854A; --gobg:#eaf7f0; --line
    `https` でないと動きません。保存したHTMLを直に開いた（file://）ときは、
    ブラウザが断ります。そのときはその旨を出します。 */
 let geoOn=false, geoWatch=null, geoDot=null, geoRing=null;
+/* 現在地へついていく（v215・本人の決め）。
+   「位置」を押すと、位置が届くたびに地図の真ん中を自分の位置へ移します。
+   拡大はそのまま、真ん中だけ移します（panTo）。
+   ついていくのをやめるのは、次のときです。
+     ・指で地図を動かしたとき（地図操作オンでなぞったとき）
+     ・表の欄を押して地図を絞ったとき、「チェックされた経路を表示」を押したとき
+       （止めないと、次の位置が届いたとき見たかった所から引き戻されます）
+     ・「位置を消す」を押したとき
+   もう一度ついていかせるには、「位置を消す」→「位置」と押し直します。 */
+let geoFollow=false;
+function geoStopFollow(){ geoFollow=false; }
 /* 現在地の住所を引きます（v188）。本体にあるものを、ここにも置きます。
    返るのは市区町村コードと lv01Nm の二つだけです。
    lv01Nm は大字・町丁目の最初の段で、番地は返りません。
@@ -112350,6 +112361,24 @@ function geoMoved(la,lo){
   const dx=(lo-geoLast[1])*d*R*Math.cos(la*d), dy=(la-geoLast[0])*d*R;
   return Math.sqrt(dx*dx+dy*dy);
 }
+/* 指で地図を動かしたら、ついていくのをやめます（v215）。
+   dragstart は人の指（やマウス）で動かしたときだけ出ます。
+   こちらが panTo で動かしたときは出ませんので、取り違えません。 */
+try{ map.on('dragstart', geoStopFollow); }catch(e){}
+/* 表から絞ったとき・「チェックされた経路を表示」のときも止めます（v215）。
+   どちらも地図を大きく動かす操作で、そのあと位置が届いても引き戻しません。 */
+(function(){
+  try{
+    if(typeof goMap==='function'){
+      const _g=goMap;
+      goMap=function(){ geoStopFollow(); return _g.apply(this,arguments); };
+    }
+    if(typeof fitChecked==='function'){
+      const _f=fitChecked;
+      fitChecked=function(){ geoStopFollow(); return _f.apply(this,arguments); };
+    }
+  }catch(e){}
+})();
 function geoBtnBox(){
   if(typeof isPhone!=='function' || !isPhone()) return null;   // スマホのときだけ
   if(!navigator.geolocation) return null;                      // 使えない機械には出しません
@@ -112378,6 +112407,7 @@ function geoSay(text){
   if(typeof flash==='function') flash(text);
 }
 function geoClear(){
+  geoFollow=false;
   if(geoWatch!==null){ try{ navigator.geolocation.clearWatch(geoWatch); }catch(e){} geoWatch=null; }
   for(const l of [geoDot, geoRing]) if(l && map.removeLayer) try{ map.removeLayer(l); }catch(e){}
   geoDot=null; geoRing=null;
@@ -112400,6 +112430,9 @@ function geoDraw(pos){
      GPSなら数m〜十数m、Wi-Fiからの推測なら数十m〜数百mになります。 */
   /* 50m以上動いたときだけ、住所を引き直します（v188）。
      引けたら次の知らせから出ます。待ちません。 */
+  if(geoFollow && map.panTo){                 // ついていく（v215）。拡大は変えません
+    try{ map.panTo([la,lo],{animate:true, duration:0.4}); }catch(e){}
+  }
   if(geoMoved(la,lo)>=50){
     geoLast=[la,lo];
     geoWhere(la,lo).then(a=>{ if(geoOn){ geoAddr=a||''; geoTell(acc); } });
@@ -112432,6 +112465,7 @@ function geoToggle(){
     return;
   }
   geoOn=true;                                  // 入れる。ここで初めて取りにいきます
+  geoFollow=true;                              // ついていく（v215）
   if(b){ b.textContent='位置を消す'; b.setAttribute('aria-pressed','true'); }
   geoSay('位置を調べています…');
   try{
