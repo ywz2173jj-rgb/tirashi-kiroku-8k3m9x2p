@@ -293,14 +293,17 @@ dialog#pop::backdrop{background:rgba(26,33,28,.45)}
    まとまっているので、その層より下に回してしまい、タイルの裏に隠れて見えなくなりました。
    高さは元（640）に戻し、代わりに真ん中を空けた形にして、自分の位置の点と重ねません。
    白い縁は、影ではなく形に沿う縁取り（drop-shadow）で付けます。空けた所が白く塗られないためです。 */
-.xhair{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;
+.xhair{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;
        pointer-events:none;z-index:640;display:none;
-       filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff)}
+       filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff)}
+/* 十字は黒の3pxの線に白の縁取り、大きさ44px（v244・本人の決め。これまでは紺の2px・34px）。
+   経路のピンク、自分の位置のマゼンタと青、円の青、触れた線のシアンのどれとも色がかぶりません。
+   真ん中の16pxは空けたまま（自分の位置の点が見える）。 */
 .xhair::before,.xhair::after{content:"";position:absolute}
-.xhair::before{left:16px;top:0;width:2px;height:34px;
-  background:linear-gradient(#1a2b4a 0 9px, rgba(0,0,0,0) 9px 25px, #1a2b4a 25px 34px)}
-.xhair::after{top:16px;left:0;width:34px;height:2px;
-  background:linear-gradient(90deg,#1a2b4a 0 9px, rgba(0,0,0,0) 9px 25px, #1a2b4a 25px 34px)}
+.xhair::before{left:calc(50% - 1.5px);top:0;width:3px;height:44px;
+  background:linear-gradient(#000 0 14px, rgba(0,0,0,0) 14px 30px, #000 30px 44px)}
+.xhair::after{top:calc(50% - 1.5px);left:0;width:44px;height:3px;
+  background:linear-gradient(90deg,#000 0 14px, rgba(0,0,0,0) 14px 30px, #000 30px 44px)}
 .addrbar{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);  /* 下の地図の並びの上に（v227） */
          max-width:calc(100% - 24px);padding:4px 12px;border:2px solid #1E5FD0;border-radius:6px;
          background:rgba(255,255,255,.93);color:#1a2b4a;font-size:14px;line-height:1.4;
@@ -321,6 +324,15 @@ dialog#pop::backdrop{background:rgba(26,33,28,.45)}
    下の地図の並びは v227 から地図の中にあるので、この段にはもう何も残りません。
    空いた分は地図を縦に伸ばすのに使います。 */
 .deck{display:none !important}
+/* 出典のリンクを押したときの確かめの窓（v246） */
+.cred-ov{position:fixed;inset:0;z-index:3200;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:18px}
+.cred-box{background:#fff;border-radius:12px;padding:16px 18px;max-width:360px;width:100%;box-shadow:0 6px 24px rgba(0,0,0,.25);
+          font-size:15px;line-height:1.6;color:#1a211c}
+.cred-box p{margin:0 0 10px}
+.cred-box .sub{font-size:13px;color:#445}
+.cred-box .row{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+.cred-box button{font-size:16px;min-height:44px;padding:8px 18px;border-radius:8px;border:2px solid #00854A;background:#fff;color:#00854A;font-weight:700}
+.cred-box button.go{background:#00854A;color:#fff}
 /* 押した集計の欄（v236・本人の決め）。絞っているあいだ黄色にし、押した枠はさらに濃くします。 */
 #tPpl tr.picked>td,#tVen tr.picked>td{background:#FFF0A8 !important;color:#1a211c}
 #tPpl tr.picked>td.pickcell,#tVen tr.picked>td.pickcell{background:#FFD84D !important;box-shadow:inset 0 0 0 2px #C99700}
@@ -614,7 +626,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 <header class="cover">
   <button type="button" id="toReport" class="ghost toRpt">報告作成へ</button>
   <h1>徒歩軌跡 まとめ</h1>
-  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-09-25に保存・197本・合計 814.05 km・住所の目安 156件。（v243）</p>
+  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-09-25に保存・197本・合計 814.05 km・住所の目安 156件。（v247）</p>
 </header>
 
 <div id="map"></div>
@@ -118116,7 +118128,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.575046,133.732793],"zoom":12,"file":"徒歩軌跡 まとめ_20260925","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.57499,133.732624],"zoom":12,"file":"徒歩軌跡 まとめ_20260925","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[],"keep":true,"tally":{"view":"ven","all":true,"openVen":["玉島市民交流センター"],"openWho":[],"day":{"v":"玉島市民交流センター","d":"9/29","w":null,"city":null},"who":null,"city":null,"dup":false}}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -118141,6 +118153,23 @@ const HOVER='#00E5FF';
 const HOVER_ADD=0;                                  // 触れているときも太くしない（v226。色で見分ける）
 const R=6371000;
 const V=JSON.parse(document.getElementById('view').textContent);
+/* 出典のリンクから戻ってきたとき、開く前の見え方で開き直します（v246・本人の決め）。
+   LINE の中などで同じ画面のまま切り替わると、戻ったとき開き直しになるためです。
+   覚えは一度使ったら消し、2時間より古いものや、別のページのものは使いません。
+   位置の表示だけは戻しません（位置は「位置」を押したときに取る決めのため）。 */
+(function(){
+  try{
+    const raw=sessionStorage.getItem('chirashi.back'); if(!raw) return;
+    sessionStorage.removeItem('chirashi.back');
+    const B=JSON.parse(raw);
+    if(!B || B.path!==location.pathname || !(Date.now()-B.t < 2*3600e3)) return;
+    if(Array.isArray(B.center)) V.center=B.center;
+    if(isFinite(B.zoom)) V.zoom=B.zoom;
+    if(B.base) V.base=B.base;
+    if(B.tally) V.tally=B.tally;
+    V.keep=true;                          // 経路に合わせ直さず、覚えた見え方のまま開く
+  }catch(e){}
+})();
 /* 開いたときの自分の中身を、そっくり控えます（v208）。
    「この見え方で保存し直す」を押したとき、控えの中の
    見え方の記録（view）だけを差し替えて書き出すためです。
@@ -118193,8 +118222,68 @@ if(V.share){
 }
 
 /* ---------- 地図 ---------- */
-const map=L.map('map',{zoomControl:true,preferCanvas:true}).setView(V.center,V.zoom);
+const map=L.map('map',{zoomControl:true,preferCanvas:true,minZoom:9}).setView(V.center,V.zoom);
 L.control.scale({imperial:false}).addTo(map);
+/* 右下の出典の先頭の「Leaflet」（と旗）は出しません（v246・本人の決め）。
+   Leaflet の使用条件（BSD 2条項）は、部品のファイルの中の著作権の記載を求めるだけで、
+   地図の上に名前を出すことは求めていません。「国土地理院」の出典とリンクは残します。 */
+try{ map.attributionControl.setPrefix(false); }catch(e){}
+/* 地図はズーム9（岡山県全体が見える程度）より引けないようにしました（v247・本人の決め）。
+   ズーム8以下では、標準・淡色は500万分1の図に、写真は世界衛星モザイクに切り替わり、
+   国土地理院の決まりで長い英文の出所（GEBCO・VMAP0・NASA）を添えることになるためです。
+   352件すべてが、スマホでもズーム9で収まります。 */
+window.__credSave=function(){
+  const c=map.getCenter();
+  const tally={
+    view: (typeof tallyView!=='undefined')?tallyView:'ven',
+    all:  (typeof tallyAll!=='undefined')?!!tallyAll:false,
+    openVen: (typeof openVen!=='undefined')?[...openVen]:[],
+    openWho: (typeof openWho!=='undefined')?[...openWho]:[],
+    day:  (typeof dayPick!=='undefined')?(dayPick||null):null,
+    who:  (typeof whoPick!=='undefined')?(whoPick||null):null,
+    city: (typeof cityPick!=='undefined')?(cityPick||null):null,
+    dup:  (typeof dupPick!=='undefined')?!!dupPick:false };
+  try{ sessionStorage.setItem('chirashi.back', JSON.stringify({t:Date.now(), path:location.pathname,
+        center:[+c.lat.toFixed(6),+c.lng.toFixed(6)], zoom:map.getZoom(), base:baseName, tally})); }catch(e){}
+};
+/* 右下の出典のリンク（国土地理院・OpenStreetMap）を押したとき（v246・本人の決め）。
+   リンクは利用規約で求められているので残しますが、指が触れただけで地図から離れないよう、
+   まず確かめの窓を出し、「開く」を押したときだけ開きます。戻り方も添えます。
+   開く前に、いまの見え方（地図の真ん中・拡大・下の地図・表の絞り）を覚えます（__credSave があれば）。
+   LINE の中では別のタブにならず、同じ画面で切り替わって、戻ると開き直しになることがあるためです。 */
+(function(){
+  const ask=(href,label)=>{
+    const old=document.getElementById('credOv'); if(old) old.remove();
+    const ov=document.createElement('div'); ov.id='credOv'; ov.className='cred-ov';
+    const safe=String(label||'出典').replace(/[<&>]/g,'');
+    ov.innerHTML='<div class="cred-box" role="dialog" aria-label="出典のページを開く">'
+      +'<p><b>'+safe+'</b> のページを開きますか？</p>'
+      +'<p class="sub">見終わったら「＜」（戻る）を押すか、開いたタブを閉じると、この地図に戻ります。'
+      +(typeof window.__credSave==='function'?'いまの見え方（地図の真ん中・拡大・表の絞り）は覚えておきます。':'')+'</p>'
+      +'<div class="row"><button type="button" class="no">やめる</button><button type="button" class="go">開く</button></div></div>';
+    document.body.appendChild(ov);
+    ov.querySelector('.no').addEventListener('click',()=>ov.remove());
+    ov.addEventListener('click',ev=>{ if(ev.target===ov) ov.remove(); });
+    ov.querySelector('.go').addEventListener('click',()=>{
+      try{ if(typeof window.__credSave==='function') window.__credSave(); }catch(e){}
+      ov.remove();
+      let w=null; try{ w=window.open(href,'_blank'); }catch(e){ w=null; }
+      if(w){ try{ w.opener=null; }catch(e){} }
+      else location.href=href;               // 別のタブが開けないとき（LINE の中など）は、この画面で開く
+    });
+  };
+  window.__credAsk=ask;
+  const hook=()=>{
+    const m=document.getElementById('map'); if(!m || m.__credHooked) return; m.__credHooked=true;
+    m.addEventListener('click',ev=>{
+      const a=ev.target && ev.target.closest && ev.target.closest('.leaflet-control-attribution a[href]');
+      if(!a) return;
+      ev.preventDefault(); ev.stopPropagation();
+      ask(a.href, a.textContent.trim());
+    },true);
+  };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',hook); else hook();
+})();
 /* 地理院タイルの個別の出所（v235・本人の決め）。
    地理院タイル一覧の「備考」で、「国土地理院」の出典に加えて明示を求められている文言を、
    選んでいる地図と拡大の具合に応じて、右下の出典に足し込みます（文言は備考のとおり）。
@@ -118807,7 +118896,24 @@ function refreshMapPaint(){
     if(map.invalidateSize) map.invalidateSize();
   }catch(e){}
 }
+
+/* ページごと拡大していたら、元の大きさ（1倍）に戻します（v247・本人の決め）。
+   スマホで指でページを拡大したまま表の欄を押すと、地図に移っても拡大が残り、
+   並び（淡色〜店舗）や住所の枠まで大きく映りました。地図操作オンでは二本指が地図に取られ、
+   ページの拡大を元に戻せなくなっていました。
+   拡大の上限（maximum-scale）をいったん1にすると、ブラウザが1倍へ戻します。すぐに元の設定に戻し、
+   ページの拡大はまたできるようにします。 */
+function resetPageZoom(){
+  const vv=window.visualViewport;
+  if(!vv || !(vv.scale>1.02)) return false;
+  const meta=document.querySelector('meta[name="viewport"]'); if(!meta) return false;
+  const orig=meta.getAttribute('content')||'width=device-width, initial-scale=1';
+  meta.setAttribute('content', orig.replace(/\s*,?\s*maximum-scale=[^,]*/g,'')+', maximum-scale=1');
+  setTimeout(()=>{ meta.setAttribute('content', orig); }, 450);
+  return true;
+}
 function setMapLive(on,quiet){
+  if(on) resetPageZoom();                       // 地図操作オンにする前に、ページの拡大を戻す（v247）
   /* 地図操作オンにするとき、ページが拡大されたままだと写真が荒いままです。
      ページの拡大は、絵を引き伸ばしているだけで、細かい札を取りに行きません。
      そこで、ページの拡大を地図の拡大に置き換えます。
@@ -119527,7 +119633,8 @@ function popOpen(t,ev){
   document.getElementById('popMap').style.height=Math.max(220,Math.min(400,Math.round(vh*0.52)))+'px';
   openAt(dlg,ev,560);
   if(!pop){
-    pop={map:L.map('popMap',{zoomControl:true,preferCanvas:true})};
+    pop={map:L.map('popMap',{zoomControl:true,preferCanvas:true,minZoom:9})};
+    try{ pop.map.attributionControl.setPrefix(false); }catch(e){}   // 小さな窓も「Leaflet」を出さない（v246）
     L.control.scale({imperial:false}).addTo(pop.map);
   }
   const m=pop.map;
@@ -120331,12 +120438,17 @@ var pickedSel=null, pickedPrev=null, pickPending=null;
 function selOfTally(el){
   const row=el&&el.closest&&el.closest('tr,.tbox');
   if(!row) return null;
-  if(row.classList.contains('tbox')) return row.dataset.c!==undefined ? {sel:`.tbox[data-c="${row.dataset.c}"]`, cell:-1} : null;
+  /* どの表の行かも覚えます（v245）。合計の行は二つの表のどちらにもあるためです。 */
+  const box=row.closest(PICK_SCOPES.join(',')); const scope=box?('#'+box.id):'';
+  if(row.classList.contains('tbox')) return row.dataset.c!==undefined ? {sel:`.tbox[data-c="${row.dataset.c}"]`, cell:-1, scope} : null;
+  /* 合計の行（tr.tot）は、会場・日付・氏名の印を持たないので、行の形で覚えます（v245）。
+     これまでは印が無いので拾えず、押しても色が付きませんでした。 */
+  if(row.classList.contains('tot')){ const td=el.closest('td'); return {sel:'tr.tot', cell: td ? td.cellIndex : -1, scope}; }
   const ks=['v','d','p','w'].filter(k=>row.dataset[k]!==undefined);
   if(!ks.length) return null;
   const sel='tr'+ks.map(k=>`[data-${k}="${String(row.dataset[k]).replace(/"/g,'\\"')}"]`).join('');
   const td=el.closest('td');
-  return {sel, cell: td ? td.cellIndex : -1};
+  return {sel, cell: td ? td.cellIndex : -1, scope};
 }
 /* 集計の表は二つ（氏名で見る #tPpl・行事会場で見る #tVen）、岡山・倉敷・合計の箱は #tOut です。 */
 const PICK_SCOPES=['#tOut','#tPpl','#tVen'];
@@ -120344,7 +120456,9 @@ function paintPicked(){
   document.querySelectorAll(PICK_SCOPES.map(s=>s+' .picked').join(',')).forEach(e=>e.classList.remove('picked'));
   document.querySelectorAll(PICK_SCOPES.map(s=>s+' .pickcell').join(',')).forEach(e=>e.classList.remove('pickcell'));
   if(!pickedSel) return;
-  const el=document.querySelector(PICK_SCOPES.map(s=>s+' '+pickedSel.sel).join(',')); if(!el) return;
+  const el=pickedSel.scope ? document.querySelector(pickedSel.scope+' '+pickedSel.sel)
+                            : document.querySelector(PICK_SCOPES.map(s=>s+' '+pickedSel.sel).join(','));
+  if(!el) return;
   el.classList.add('picked');
   if(pickedSel.cell>=0 && el.cells && el.cells[pickedSel.cell]) el.cells[pickedSel.cell].classList.add('pickcell');
 }
@@ -120365,6 +120479,7 @@ function paintPicked(){
 })();
 function goMap(set){
   if(!set||!set.size) return false;
+  resetPageZoom();                              // 地図へ移るとき、ページの拡大を戻す（v247）
   if(pickPending){ pickedPrev=pickedSel; pickedSel=pickPending; pickPending=null; paintPicked(); }
   const b=L.featureGroup([...set].map(t=>t.line)).getBounds();
   markFrom();
@@ -120419,19 +120534,33 @@ document.addEventListener('keydown',ev=>{
   const b=el&&el.closest&&el.closest('.tbox');
   if(!b) return; ev.preventDefault(); peekSave=null; setCity(b.dataset.c||'');
 });
+/* 合計の行の「件数・枚数」（すべて）を押したかの印（v246）。
+   ほかの行と同じく、同じ欄をもう一度押したら絞りを解いて元に戻すためです。 */
+var allPick=false;
 function setCity(city){
   if(!city){                             // 件数・枚数・距離＝すべての経路
+    /* ほかの行と同じく、同じ欄をもう一度押したら元に戻します（地図は動かしません。v246）。 */
+    if(allPick && !dayPick && !whoPick && !cityPick){
+      allPick=false; backState=null; showBack(false);
+      pickedSel=null; pickedPrev=null; if(typeof paintPicked==='function') paintPicked();
+      return;
+    }
     remember();
     dayPick=null; whoPick=null; cityPick=null;
     tallyNow();
-    const all=new Set(tracks.filter(t=>t.on&&t.line));
+    /* 地図を合わせる範囲も、ほかの行と同じく「表に数えている分」（期間の中・チェックあり）にします（v246）。
+       これまではチェックの入った経路すべて（期間の外も）に合わせていたので、
+       期間を入れていると、合計の行だけ地図が広く引いた見え方になっていました。 */
+    const all=new Set(tracks.filter(t=>isShown(t)&&t.line));
     if(!all.size){
       if(typeof flash==='function') flash('地図に出ている経路がありません。');
       return;
     }
     goMap(all);                          // 全体に合わせ、「前に戻る」も出します
+    allPick=true;
     return;
   }
+  allPick=false;
   if(cityPick===city){ cityPick=null; backState=null; tallyNow(); showBack(false); return; }
   remember();
   dayPick=null; whoPick=null; cityPick=city;
@@ -120823,6 +120952,7 @@ const RPT_UI=false;
    「TOP」を押したときと、縦向きのスマホで開いたときの両方で使います。 */
 function goMapTop(){
   const m=document.getElementById('map'); if(!m) return;
+  if(typeof resetPageZoom==='function') resetPageZoom();   // TOP・位置で地図へ移るときも戻す（v247）
   const y=m.getBoundingClientRect().top+(window.pageYOffset||document.documentElement.scrollTop||0);
   window.scrollTo(0, Math.max(0, Math.round(y)));
 }
@@ -120879,7 +121009,7 @@ function topBtnBox(){
    説明は文字の変数として持ちます。札を入れ子にしてはいけません。
    ひな型そのものが札の中身として置かれているため、内側の札で読み取りが
    打ち切られます（v179で実際に起き、共有版から経路が丸ごと落ちました）。 */
-const HOWTO = "<style>:root{ --ink:#1a211c; --go:#00854A; --gobg:#eaf7f0; --line:#c9d3cc; --warn:#7A4A00; --warnbg:#FFF8EE; --warnline:#E08000; }\n  *{ box-sizing:border-box; }\n  /* 説明文の入れ物に効かせます。左の余白は24px（v239・本人の決め） */\n  .hwbody{ margin:0; padding:18px 20px 60px 24px; max-width:684px; box-sizing:border-box;\n        font-family:system-ui,-apple-system,\"Hiragino Kaku Gothic ProN\",\"Noto Sans JP\",sans-serif;\n        color:var(--ink); line-height:1.85; font-size:16px; background:#fff; }\n  h1{ font-size:21px; line-height:1.5; margin:0 0 6px; }\n  h2{ font-size:18px; margin:30px 0 8px; padding:7px 0 7px 11px;\n      border-left:6px solid var(--go); background:var(--gobg); }\n  h3{ font-size:16px; margin:20px 0 6px; }\n  p{ margin:9px 0; }\n  .lead{ color:#41504a; margin:0 0 4px; }\n  ol,ul{ padding-left:1.35em; margin:9px 0; }\n  li{ margin:6px 0; }\n  b.key{ display:inline-block; border:2px solid var(--go); color:var(--go);\n         background:#fff; border-radius:4px; padding:1px 8px; font-size:15px;\n         white-space:nowrap; }\n  .warn{ border:2px solid var(--warnline); background:var(--warnbg); color:var(--warn);\n         border-radius:5px; padding:11px 13px; margin:14px 0; }\n  .note{ border:1px solid var(--line); border-radius:5px; padding:11px 13px; margin:14px 0;\n         background:#f7faf8; }\n  table{ border-collapse:collapse; width:100%; margin:10px 0; font-size:15px; }\n  th,td{ border:1px solid var(--line); padding:7px 9px; text-align:left; vertical-align:top; }\n  th{ background:#f0f5f2; white-space:nowrap; }\n  .q{ font-weight:700; margin:16px 0 2px; }\n  footer{ margin-top:34px; padding-top:12px; border-top:1px solid var(--line);\n          font-size:14px; color:#5b6a63; }\n  /* パソコン用とスマホ用を一つの中に持ち、開くときに切り替えます（v222） */\n  .hw-pc .sp-only{ display:none !important; }\n  .hw-sp .pc-only{ display:none !important; }\n  /* 報告作成を画面に出さないあいだは、その説明も出しません（v229） */\n  .hw-norpt .rptdoc{ display:none !important; }</style>\n<h1>チラシ配布の地図<br><span class=\"sp-only\">― スマホでの使い方 ―</span><span class=\"pc-only\">― 使い方 ―</span></h1>\n<p class=\"lead\"><span class=\"sp-only\">受け取った地図つきHTMLを、スマホで開いた方へ</span><span class=\"pc-only\">地図つきHTMLを、パソコンやタブレットで開いた方へ</span></p>\n\n<h2>これは何か</h2>\n\n<p><b>チラシを配った道のりを、国土地理院の地図の上に重ねたものです。</b></p>\n\n<p><b>地図の上には、二種類の印があります。</b></p>\n\n<table>\n<tr><th>印</th><th>意味</th></tr>\n<tr><td><b style=\"color:#E2358C\">ピンクの線</b></td>\n    <td><b>実際に歩いた（走った）道のり</b>です。GPSの記録をそのまま重ねていますので、どの通りを配り、どこを配っていないかが、そのまま見えます</td></tr>\n<tr><td><b style=\"color:#1E5FD0\">青の点線の円</b></td>\n    <td><b>経路記録アプリ（ルートヒストリ）を使っていない、だいたいの配布場所</b>です。道のりの記録が無いため、その辺りを配った、という目安を円で示しています</td></tr>\n</table>\n\n<div class=\"note\">\n<b>青の円は「この円の中を全部配った」という意味ではありません。</b>記録が残っていないので、おおよその場所を円で置いてあるだけです。<b>円の大きさ（半径）も目安です。</b>\n</div>\n\n<p>一覧や集計表では、青の円は <b>「住所の目安」</b> と表示されます。半径のあるものは <b>「半径300m」</b> のように出ます。</p>\n\n<p><b>同じ道のりで二種類のチラシを配ったときは</b>、線が重なって一本に見えます。一覧も一行にまとめ、コメントは <b>「9/17 中区原尾島　山田 100枚　9/18 天神山＋48枚　9/20 瀬戸内」</b> のように、二件目からは枚数と行事だけを「＋」でつないで出します。<b>記録は二件のまま</b>で、表でも二件として数えます。</p>\n\n<p>あわせて、<b>誰が・いつ・どの会場の分を・何枚配ったか</b>を数えた表が付いています。地図と表は連動していて、表の数字を押すとその分だけが地図に出ます。</p>\n\n<div class=\"note\">\n<b>このファイル一つで完結しています。</b> 地図も記録も中に入っていますので、通信が無くても開けます（地図の絵と、住所を引くときだけ通信が要ります）。誰かのサーバーに何かを送ることもありません。\n</div>\n\n<div class=\"rptdoc\">\n<h2>報告作成（配る人へ）</h2>\n\n<p><b>ルートヒストリで記録した GPX に、配布の報告を書き入れて、LINE へ送る画面です。</b>報告の文を自分で打たなくても、決まった形で送れます。</p>\n\n<p class=\"sp-only\">スマホで初めて開くと、<b class=\"key\">報告作成</b> と <b class=\"key\">配布地図</b> を選ぶ画面が出ます。<b>選んだほうを覚えて、次からはそちらで開きます。</b>切り替えは、報告作成の画面の <b class=\"key\">配布地図へ</b>、配布地図の見出しの <b class=\"key\">報告作成へ</b> です。</p>\n<p class=\"pc-only\">見出しの帯の <b class=\"key\">報告作成へ</b> から開けます。ふだんはスマホで使うものです。</p>\n\n<table>\n<tr><th>① GPX を選ぶ</th><td>ルートヒストリで記録を終えたら、「GPX Export」で書き出して「ファイル」に保存し、ここで選びます。配布日と距離が出ます</td></tr>\n<tr><th>② 配布場所</th><td>通った住所から、いちばん多い町名が自動で入ります。違っていれば直せます</td></tr>\n<tr><th>③ 氏名</th><td>打ち込みます。<b>このスマホが覚えて、次からは自動で入ります</b></td></tr>\n<tr><th>④ 配ったチラシ</th><td>行事日・会場・枚数。二種類配ったときは <b class=\"key\">＋ もう一種類</b></td></tr>\n<tr><th>⑤ 送る</th><td>できあがる報告を確かめて <b class=\"key\">報告つき GPX をつくって LINE へ送る</b>。共有の画面で LINE とグループを選びます</td></tr>\n</table>\n\n<div class=\"note\">\n<b>LINE へ自動で送ることはできません。</b>共有の画面から、LINE とグループを選ぶ二押しはご自分でお願いします。共有の画面が出ないとき（LINE の中など）は、ファイルに保存されますので、LINE のトークで「＋」→「ファイル」から送ってください。LINE の中で保存できないときは、右上の印から「ブラウザで開く」で開き直してください。\n</div>\n\n<p>氏名は、このスマホの中にだけ覚えます。人に渡す地図には入りません。</p>\n\n</div>\n\n<h2>まず覚えていただきたいこと</h2>\n\n<h3>一。地図を動かすときは「地図操作オン」</h3>\n\n<p>地図の右上に <b class=\"key\">地図操作オン</b> という緑の釦があります。<b>これを押すと、地図を動かしたり拡大したりできるようになります。</b></p>\n\n<p>押すと地図の周りに<b>青い枠</b>が出て、釦の文字が <b class=\"key\">地図操作オフ</b> に変わります。これは「押せばオフになる」という意味で、<b>いまはオンです。</b></p>\n\n<p class=\"sp-only\">押さずにつまむと、地図ではなくページ全体が拡大され、<b>写真がぼやけます。</b></p>\n\n<p class=\"pc-only\"><b>地図の上でマウスの釦を1秒押したままにしても、オンになります。</b>オンのときに<b>4秒</b>押したままにすると、オフに戻ります。キーボードの <b>Esc</b> でもオフになります。オフのあいだは、ホイールを回すとページが上下に動きます（地図は拡大しません）。</p>\n\n<h3>二。見終わったら「地図操作オフ」に戻す</h3>\n\n<p>オンのままだと、<b>ページを上下に動かそうとしても地図が動いてしまいます。</b>表を見に行くときは、オフに戻してください。</p>\n\n<div class=\"sp-only\">\n<h3>三。LINEの中では、画面を下へ強くはらうと閉じます</h3>\n\n<div class=\"warn\">\n<b>LINEの中で開いているときは、指で下へ強くはらうと画面が閉じてトークに戻ります。</b>LINEの仕掛けですので、こちらでは止められません。<br><br>\n画面の<b>右上（または右下）の印</b>から「<b>ブラウザで開く</b>」（Safari／Chrome）を選ぶと、閉じなくなります。<b>長くご覧になるときは、そちらをおすすめします。</b>\n</div>\n\n<p>閉じてしまっても、<b>もう一度開けば元に戻ります。</b>経路はファイルの中に入っていますので、失われるものはありません。</p>\n</div>\n\n<h2>地図でできること</h2>\n\n<table>\n<tr><th>したいこと</th><th>やり方</th></tr>\n<tr><td>拡大・縮小</td><td><span class=\"sp-only\"><b class=\"key\">地図操作オン</b> を押してから、二本指でつまむ（広げる／狭める）</span><span class=\"pc-only\"><b class=\"key\">地図操作オン</b> にして、ホイールを回す。左上の <b class=\"key\">＋</b> <b class=\"key\">−</b> は、オフのままでも使えます</span></td></tr>\n<tr><td>動かす</td><td><span class=\"sp-only\">オンのまま、一本指でなぞる</span><span class=\"pc-only\">オンのまま、マウスでつかんで動かす</span></td></tr>\n<tr><td>経路のコメントを見る</td><td><span class=\"sp-only\">ピンクの線に<b>指を置く</b>。すぐにコメントが出て、指を離しても残ります（<b>10秒</b>で消えます）</span><span class=\"pc-only\">ピンクの線に<b>カーソルを乗せる</b>。コメントが出ます</span>。触れている線は<b style=\"color:#00B8CC\">シアン</b>になります</td></tr>\n<tr class=\"sp-only\"><td>コメントを消す</td><td>地図の<b>何も無い所に、0.4秒ほど指を置く</b>。軽く触れただけでは消えません（読んでいる途中で消えないように）</td></tr>\n<tr><td>配布場所（青の円）を見る</td><td><span class=\"sp-only\">円の線の上か、<b>円の内側</b>に指を置く</span><span class=\"pc-only\">円の線にカーソルを乗せる</span>。「住所の目安」が出ます（距離は出ません）</td></tr>\n<tr><td>一本の経路だけを大きく見る</td><td>一覧の名前を押すと、その場に小さな窓が開き、その経路だけを拡大して映します。同じ道のりの経路は一緒に映ります</td></tr>\n<tr><td>下の地図を変える</td><td>地図の枠の中の<b>下のまん中の並び</b>で、淡色・標準・白地・<b>写真</b>・店舗から選ぶ。並びはいつもそこにあります</td></tr>\n<tr><td>真ん中の住所を知る</td><td><b class=\"key\">地図操作オン</b> のあいだ、地図の真ん中に<b>十字</b>が出て、その場所の住所が<b>下の地図の並びのすぐ上の青枠</b>に出ます。地図を止めるたびに書き換わります（町名・丁目まで。番地は出ません）</td></tr>\n<tr><td>地図へ戻る</td><td>画面下の <b class=\"key\">TOP</b> を押すと、<b>地図の上の端へ戻ります</b>。地図が画面いっぱいに見えます。見出し（題・保存日・版）を見るときは、上へ送ってください<span class=\"sp-only\">。<b>縦向きのスマホは、開いたときもこの見え方で始まります</b></span></td></tr>\n</table>\n\n<div class=\"note\">\n<b>航空写真がいちばん見やすいはずです。</b>地図の下のまん中の並びで<b>「写真」</b>を選び、地図操作オンにして拡大してください。屋根の形や駐車場まで見えます。\n</div>\n\n<h2>表でできること</h2>\n\n<h3>数え方は三段</h3>\n\n<table>\n<tr><th>段</th><th>中身</th></tr>\n<tr><td>一段目</td><td>行事会場ごと、または氏名ごとの合計</td></tr>\n<tr><td>二段目</td><td>その中の、日ごと・人ごとの内訳</td></tr>\n<tr><td>三段目</td><td>一件ずつの記録</td></tr>\n</table>\n\n<p><b>左の ▶ を押すと、下の段が開きます。</b>上の <b class=\"key\">氏名で見る</b> <b class=\"key\">行事会場で見る</b> で並べ方を変えられます。<b class=\"key\">表を全部ひらく</b> で、すべての段を一度に開けます。</p>\n\n<p>画面の表には、件数・岡山・倉敷・枚数を出しています。<b>距離はエクセルで見ます。</b></p>\n\n<p>集計の見出しには <b>「経路 ◯本・住所の目安 ◯件」</b> のように出ます。<b>前者がピンクの線、後者が青の円の数です。</b>枚数はどちらも同じように数えています。</p>\n\n<h3>表から地図へ</h3>\n\n<p><b>表の欄（会場名・氏名・日付）を押すと、地図に切り替わり、その分だけが表示されます。</b>ほかの経路は消えます。</p>\n\n<p><b>押した欄は黄色になります。</b>押した枠（件数・岡山・倉敷など）は、さらに濃い黄色です。表を見れば、いま地図に出ているのがどの欄の分か分かります。</p>\n\n<p>戻すには二つあります。</p>\n\n<ul>\n<li><b class=\"key\">前に戻る</b> … 押す前の見え方にそっくり戻します</li>\n<li><b class=\"key\">すべての経路に戻す</b> … 絞り込みを解いて、全部出します</li>\n</ul>\n\n<h3>期間で絞る</h3>\n\n<p><b>「期間」</b>の欄に <b>7/1</b> と <b>7/31</b> のように入れると、その間の記録だけを数えます。<b class=\"key\">期間を空にする</b> で元に戻ります。</p>\n\n<h3>チェックで絞る</h3>\n\n<p>一覧の各行にチェックがあります。<b>外した経路は、地図からも集計からも外れます。</b></p>\n\n<p><b class=\"key\">チェックされた経路を表示</b> を押すと、チェックの入った経路が全部入るように地図を合わせます。</p>\n\n<div class=\"sp-only\">\n<h2>いまいる場所を出す</h2>\n\n<p>画面下の <b class=\"key\">位置</b> を押すと、いまいる場所が地図に<b>青とマゼンタに点滅する点</b>で出ます。点のまわりの輪は、<b>GPSの誤差の目安</b>です。</p>\n\n<p><b>地図は、自分の位置へついていきます。</b>歩けば地図も一緒に動き、自分がいつも真ん中に来ます。拡大の具合はそのままです。</p>\n\n<p>次のときは、ついていくのをやめます。</p>\n\n<ul>\n<li>指で地図を動かしたとき（地図操作オンのとき）</li>\n<li>表の欄を押して、地図を絞ったとき</li>\n<li><b class=\"key\">チェックされた経路を表示</b> を押したとき</li>\n</ul>\n\n<p><b>ついていくのが止まると、釦の文字が <b class=\"key\">位置に戻す</b> に変わります。</b>それを押すと、その場で自分の位置に地図を合わせ、またついていきます。</p>\n\n<table>\n<tr><th>釦の文字</th><th>いまの様子</th></tr>\n<tr><td><b class=\"key\">位置</b></td><td>出していません。押すと出します</td></tr>\n<tr><td><b class=\"key\">位置を消す</b></td><td>出していて、地図がついていきます。押すと消します</td></tr>\n<tr><td><b class=\"key\">位置に戻す</b></td><td>出していますが、ついていくのは止まっています。押すと、また自分の位置に合わせます</td></tr>\n</table>\n\n<div class=\"note\">\n<b>押すまで、位置は調べません。</b>押したときに初めて、ブラウザが「位置情報の使用を許可しますか」と聞きます。<b>許可しなければ、位置は出ません。</b>\n</div>\n\n<p><b>あなたの位置は、あなたの画面にしか出ません。</b>この地図はどこへも何も送りませんので、ほかの方に見られることはありません。保存したファイルにも入りません。</p>\n\n<h3>点と一緒に、誤差と住所が出ます</h3>\n\n<table>\n<tr><th>出るもの</th><td>現在地（誤差 約8m）　岡山市東区西大寺一丁目</td></tr>\n<tr><th>誤差</th><td><b>約8mなら信用できます。</b>100mを超えたときは、輪の中のどこか、とお考えください</td></tr>\n<tr><th>住所</th><td><b>番地は出ません。</b>丁目は、その町の住所の付け方によります</td></tr>\n</table>\n\n<div class=\"warn\">\n<b>「位置を消す」を押しても、スマホの設定は変わりません。</b>このアプリが位置を調べるのをやめるだけです。<b>ほかのアプリや地図には、何の影響もありません。</b>\n</div>\n\n<p>許可を聞かれたとき「<b>次回も許可</b>」を選ぶと、<b>ブラウザが覚えます。</b>次に開いたときは聞かれません。<b>このアプリは、それでも釦を押すまで位置を取りにいきません。</b>ブラウザに与えた許可そのものを消したいときは、<b>ブラウザの設定から</b>お願いします。</p>\n</div>\n\n<p class=\"pc-only\"><b>いまいる場所を出す釦（位置）は、スマホで開いたときだけ出ます。</b>パソコンはGPSを持たず、誤差が数百m〜数kmになるためです。</p>\n\n<h2>エクセルに書き出す</h2>\n\n<p class=\"sp-only\"><b>人に渡す版をスマホで開いたときは、書き出しの釦は出ません。</b>保存先が分かりにくく、開くアプリも要るためです。パソコンで開いてお使いください。</p>\n\n<p class=\"pc-only\">集計表の上の <b class=\"key\">エクセル用に保存</b> を押すと、<b>パソコンの「ダウンロード」フォルダ</b>に保存されます。</p>\n\n<table>\n<tr><th>ファイル名</th><td><b>チラシ配布の集計_最初-最後.xlsx</b><br>（期間を入れているときは、その日付が名前に入ります）</td></tr>\n<tr><th>シート</th><td><b>5枚</b>：地区ごと／氏名ごと／行事会場ごと／一行一件／配布の明細</td></tr>\n<tr><th>氏名ごと</th><td>一行が一件です。件数・岡山・倉敷を、それぞれ<b>「氏名・会場・行事日」の三列</b>に分けてあり、氏名と会場は縦にセル結合しています。<b>どの列をそのまま足しても、正しい数になります。</b>右端に<b>補正距離km</b>（同じ道のりの重なりを引いたあとの距離）があります</td></tr>\n<tr><th>行事会場ごと</th><td>同じ組み立てで、件数・岡山・倉敷を<b>「会場・行事日・氏名」の三列</b>に分けてあります。補正距離の列はありません（同じ道のりの重なりは会場をまたぐため）。差引は表の下に一行だけ置いてあります</td></tr>\n<tr><th>枚数</th><td>枚数の列はありません。<b>岡山と倉敷を足した数が枚数です</b></td></tr>\n</table>\n\n<div class=\"note\">\n<b>「同じ道のりの重なり（差引）」という行があります。</b>同じ道のりで二種類のチラシを配ると、距離を二度数えてしまいます。その分を引くための行です。距離の列を足すと、実際に歩いた距離になります。\n</div>\n\n<p><b>いま画面に出ている分が、そのまま書き出されます。</b>期間で絞ったり、チェックを外したりしていれば、その状態のまま書き出されます。全部を出したいときは、先に <b class=\"key\">期間を空にする</b> と <b class=\"key\">すべての経路に戻す</b> を押してください。</p>\n\n<div class=\"pc-only\">\n<h2>見え方を保存し直す（人に渡す版）</h2>\n\n<p>人に渡す版をパソコンやタブレットで開くと、<b class=\"key\">この見え方で保存し直す</b> という釦が出ます。<b>スマホでは出ません。</b></p>\n\n<p>押すと、いまの見え方を持ったまま <b>index.html</b> を書き出します。持ち越すのは次のものです。</p>\n\n<ul>\n<li>地図の真ん中と拡大、下の地図</li>\n<li>表の絞り（押していた欄）と、表の開き具合（全部ひらく・開いていた下層）</li>\n</ul>\n\n<p>書き出した index.html は、<b>開いたとき、保存した見え方のまま</b>出ます（経路に合わせて引いたりしません）。上に「◯◯ の分だけを地図に映しています」の帯が出ていれば、<b class=\"key\">すべての経路に戻す</b> で全部に戻せます。</p>\n\n<div class=\"note\">\n中の仕組み（釦の働きなど）は、開いているファイルのままです。新しい版の働きにしたいときは、本体から出し直してください。\n</div>\n</div>\n\n<h2>困ったとき</h2>\n\n<p class=\"q\">写真がぼやける</p>\n<p><b class=\"key\">地図操作オン</b> を押してから拡大していますか。押さずにつまむと、ページが拡大されるだけで、写真は細かくなりません。<b>一度オフにしてからオンを押し直す</b>と、絵が描き直されて元に戻ります。</p>\n\n<p class=\"q\">地図が動かない</p>\n<p><b class=\"key\">地図操作オン</b> になっていますか。青い枠が出ていれば、オンです。</p>\n\n<p class=\"q\">ページが上下に動かない</p>\n<p>逆に <b class=\"key\">地図操作オン</b> のままかもしれません。オフに戻してください。</p>\n\n<div class=\"sp-only\">\n<p class=\"q\">コメントが消えない</p>\n<p>地図の<b>何も無い所に、0.4秒ほど指を置いてください。</b>10秒たてば自然に消えます。</p>\n\n<p class=\"q\">地図が勝手に動く</p>\n<p><b class=\"key\">位置</b> を押したあと、地図が自分の位置へついていっています。<b>指で地図を動かすと止まります。</b><b class=\"key\">位置を消す</b> でも止まります。</p>\n\n<p class=\"q\">急に閉じてトークに戻った</p>\n<p>指で下へ強くはらうと、LINEが画面を閉じます。<b>もう一度開けば戻ります。</b>「ブラウザで開く」を使えば起きません。</p>\n</div>\n\n<p class=\"q\">経路が出てこない</p>\n<p>期間で絞っているか、チェックが外れているか、表から絞り込んだままかもしれません。<b class=\"key\">期間を空にする</b> と <b class=\"key\">すべての経路に戻す</b> を押してみてください。</p>\n\n<p class=\"q\">住所の青枠に「住所を引けませんでした」と出る</p>\n<p>住所は国土地理院に問い合わせています。<b>通信がつながっているか</b>お確かめください。海の上などは「この場所の住所はありません」と出ます。</p>\n\n<p class=\"q\">青い円ばかりで、線が無い人がいる</p>\n<p><b>その方は、経路記録アプリを使わずに配られた分です。</b>配っていないわけではありません。道のりの記録が無いため、だいたいの場所を円で置いてあります。</p>\n\n<h2>氏名について</h2>\n\n<p><b>人に渡す版（共有版）では、氏名は姓だけになっています。</b>下の名前は入っていません。</p>\n\n<footer>\n国土地理院の地図・航空写真を使用しています。<br>\n地図の表示には Leaflet を使っています。\n</footer>\n";
+const HOWTO = "<style>:root{ --ink:#1a211c; --go:#00854A; --gobg:#eaf7f0; --line:#c9d3cc; --warn:#7A4A00; --warnbg:#FFF8EE; --warnline:#E08000; }\n  *{ box-sizing:border-box; }\n  /* 説明文の入れ物に効かせます。左の余白は24px（v239・本人の決め） */\n  .hwbody{ margin:0; padding:18px 20px 60px 24px; max-width:684px; box-sizing:border-box;\n        font-family:system-ui,-apple-system,\"Hiragino Kaku Gothic ProN\",\"Noto Sans JP\",sans-serif;\n        color:var(--ink); line-height:1.85; font-size:16px; background:#fff; }\n  h1{ font-size:21px; line-height:1.5; margin:0 0 6px; }\n  h2{ font-size:18px; margin:30px 0 8px; padding:7px 0 7px 11px;\n      border-left:6px solid var(--go); background:var(--gobg); }\n  h3{ font-size:16px; margin:20px 0 6px; }\n  p{ margin:9px 0; }\n  .lead{ color:#41504a; margin:0 0 4px; }\n  ol,ul{ padding-left:1.35em; margin:9px 0; }\n  li{ margin:6px 0; }\n  b.key{ display:inline-block; border:2px solid var(--go); color:var(--go);\n         background:#fff; border-radius:4px; padding:1px 8px; font-size:15px;\n         white-space:nowrap; }\n  .warn{ border:2px solid var(--warnline); background:var(--warnbg); color:var(--warn);\n         border-radius:5px; padding:11px 13px; margin:14px 0; }\n  .note{ border:1px solid var(--line); border-radius:5px; padding:11px 13px; margin:14px 0;\n         background:#f7faf8; }\n  table{ border-collapse:collapse; width:100%; margin:10px 0; font-size:15px; }\n  th,td{ border:1px solid var(--line); padding:7px 9px; text-align:left; vertical-align:top; }\n  th{ background:#f0f5f2; white-space:nowrap; }\n  .q{ font-weight:700; margin:16px 0 2px; }\n  footer{ margin-top:34px; padding-top:12px; border-top:1px solid var(--line);\n          font-size:14px; color:#5b6a63; }\n  /* パソコン用とスマホ用を一つの中に持ち、開くときに切り替えます（v222） */\n  .hw-pc .sp-only{ display:none !important; }\n  .hw-sp .pc-only{ display:none !important; }\n  /* 報告作成を画面に出さないあいだは、その説明も出しません（v229） */\n  .hw-norpt .rptdoc{ display:none !important; }</style>\n<h1>チラシ配布の地図<br><span class=\"sp-only\">― スマホでの使い方 ―</span><span class=\"pc-only\">― 使い方 ―</span></h1>\n<p class=\"lead\"><span class=\"sp-only\">受け取った地図つきHTMLを、スマホで開いた方へ</span><span class=\"pc-only\">地図つきHTMLを、パソコンやタブレットで開いた方へ</span></p>\n\n<h2>これは何か</h2>\n\n<p><b>チラシを配った道のりを、国土地理院の地図の上に重ねたものです。</b></p>\n\n<p><b>地図の上には、二種類の印があります。</b></p>\n\n<table>\n<tr><th>印</th><th>意味</th></tr>\n<tr><td><b style=\"color:#E2358C\">ピンクの線</b></td>\n    <td><b>実際に歩いた（走った）道のり</b>です。GPSの記録をそのまま重ねていますので、どの通りを配り、どこを配っていないかが、そのまま見えます</td></tr>\n<tr><td><b style=\"color:#1E5FD0\">青の点線の円</b></td>\n    <td><b>経路記録アプリ（ルートヒストリ）を使っていない、だいたいの配布場所</b>です。道のりの記録が無いため、その辺りを配った、という目安を円で示しています</td></tr>\n</table>\n\n<div class=\"note\">\n<b>青の円は「この円の中を全部配った」という意味ではありません。</b>記録が残っていないので、おおよその場所を円で置いてあるだけです。<b>円の大きさ（半径）も目安です。</b>\n</div>\n\n<p>一覧や集計表では、青の円は <b>「住所の目安」</b> と表示されます。半径のあるものは <b>「半径300m」</b> のように出ます。</p>\n\n<p><b>同じ道のりで二種類のチラシを配ったときは</b>、線が重なって一本に見えます。一覧も一行にまとめ、コメントは <b>「9/17 中区原尾島　山田 100枚　9/18 天神山＋48枚　9/20 瀬戸内」</b> のように、二件目からは枚数と行事だけを「＋」でつないで出します。<b>記録は二件のまま</b>で、表でも二件として数えます。</p>\n\n<p>あわせて、<b>誰が・いつ・どの会場の分を・何枚配ったか</b>を数えた表が付いています。地図と表は連動していて、表の数字を押すとその分だけが地図に出ます。</p>\n\n<div class=\"note\">\n<b>このファイル一つで完結しています。</b> 地図も記録も中に入っていますので、通信が無くても開けます（地図の絵と、住所を引くときだけ通信が要ります）。誰かのサーバーに何かを送ることもありません。\n</div>\n\n<div class=\"rptdoc\">\n<h2>報告作成（配る人へ）</h2>\n\n<p><b>ルートヒストリで記録した GPX に、配布の報告を書き入れて、LINE へ送る画面です。</b>報告の文を自分で打たなくても、決まった形で送れます。</p>\n\n<p class=\"sp-only\">スマホで初めて開くと、<b class=\"key\">報告作成</b> と <b class=\"key\">配布地図</b> を選ぶ画面が出ます。<b>選んだほうを覚えて、次からはそちらで開きます。</b>切り替えは、報告作成の画面の <b class=\"key\">配布地図へ</b>、配布地図の見出しの <b class=\"key\">報告作成へ</b> です。</p>\n<p class=\"pc-only\">見出しの帯の <b class=\"key\">報告作成へ</b> から開けます。ふだんはスマホで使うものです。</p>\n\n<table>\n<tr><th>① GPX を選ぶ</th><td>ルートヒストリで記録を終えたら、「GPX Export」で書き出して「ファイル」に保存し、ここで選びます。配布日と距離が出ます</td></tr>\n<tr><th>② 配布場所</th><td>通った住所から、いちばん多い町名が自動で入ります。違っていれば直せます</td></tr>\n<tr><th>③ 氏名</th><td>打ち込みます。<b>このスマホが覚えて、次からは自動で入ります</b></td></tr>\n<tr><th>④ 配ったチラシ</th><td>行事日・会場・枚数。二種類配ったときは <b class=\"key\">＋ もう一種類</b></td></tr>\n<tr><th>⑤ 送る</th><td>できあがる報告を確かめて <b class=\"key\">報告つき GPX をつくって LINE へ送る</b>。共有の画面で LINE とグループを選びます</td></tr>\n</table>\n\n<div class=\"note\">\n<b>LINE へ自動で送ることはできません。</b>共有の画面から、LINE とグループを選ぶ二押しはご自分でお願いします。共有の画面が出ないとき（LINE の中など）は、ファイルに保存されますので、LINE のトークで「＋」→「ファイル」から送ってください。LINE の中で保存できないときは、右上の印から「ブラウザで開く」で開き直してください。\n</div>\n\n<p>氏名は、このスマホの中にだけ覚えます。人に渡す地図には入りません。</p>\n\n</div>\n\n<h2>まず覚えていただきたいこと</h2>\n\n<h3>一。地図を動かすときは「地図操作オン」</h3>\n\n<p>地図の右上に <b class=\"key\">地図操作オン</b> という緑の釦があります。<b>これを押すと、地図を動かしたり拡大したりできるようになります。</b></p>\n\n<p>押すと地図の周りに<b>青い枠</b>が出て、釦の文字が <b class=\"key\">地図操作オフ</b> に変わります。これは「押せばオフになる」という意味で、<b>いまはオンです。</b></p>\n\n<p class=\"sp-only\">押さずにつまむと、地図ではなくページ全体が拡大され、<b>写真がぼやけます。</b></p>\n\n<p class=\"pc-only\"><b>地図の上でマウスの釦を1秒押したままにしても、オンになります。</b>オンのときに<b>4秒</b>押したままにすると、オフに戻ります。キーボードの <b>Esc</b> でもオフになります。オフのあいだは、ホイールを回すとページが上下に動きます（地図は拡大しません）。</p>\n\n<h3>二。見終わったら「地図操作オフ」に戻す</h3>\n\n<p>オンのままだと、<b>ページを上下に動かそうとしても地図が動いてしまいます。</b>表を見に行くときは、オフに戻してください。</p>\n\n<div class=\"sp-only\">\n<h3>三。LINEの中では、画面を下へ強くはらうと閉じます</h3>\n\n<div class=\"warn\">\n<b>LINEの中で開いているときは、指で下へ強くはらうと画面が閉じてトークに戻ります。</b>LINEの仕掛けですので、こちらでは止められません。<br><br>\n画面の<b>右上（または右下）の印</b>から「<b>ブラウザで開く</b>」（Safari／Chrome）を選ぶと、閉じなくなります。<b>長くご覧になるときは、そちらをおすすめします。</b>\n</div>\n\n<p>閉じてしまっても、<b>もう一度開けば元に戻ります。</b>経路はファイルの中に入っていますので、失われるものはありません。</p>\n</div>\n\n<h2>地図でできること</h2>\n\n<table>\n<tr><th>したいこと</th><th>やり方</th></tr>\n<tr><td>拡大・縮小</td><td><span class=\"sp-only\"><b class=\"key\">地図操作オン</b> を押してから、二本指でつまむ（広げる／狭める）</span><span class=\"pc-only\"><b class=\"key\">地図操作オン</b> にして、ホイールを回す。左上の <b class=\"key\">＋</b> <b class=\"key\">−</b> は、オフのままでも使えます</span></td></tr>\n<tr><td>動かす</td><td><span class=\"sp-only\">オンのまま、一本指でなぞる</span><span class=\"pc-only\">オンのまま、マウスでつかんで動かす</span></td></tr>\n<tr><td>経路のコメントを見る</td><td><span class=\"sp-only\">ピンクの線に<b>指を置く</b>。すぐにコメントが出て、指を離しても残ります（<b>10秒</b>で消えます）</span><span class=\"pc-only\">ピンクの線に<b>カーソルを乗せる</b>。コメントが出ます</span>。触れている線は<b style=\"color:#00B8CC\">シアン</b>になります</td></tr>\n<tr class=\"sp-only\"><td>コメントを消す</td><td>地図の<b>何も無い所に、0.4秒ほど指を置く</b>。軽く触れただけでは消えません（読んでいる途中で消えないように）</td></tr>\n<tr><td>配布場所（青の円）を見る</td><td><span class=\"sp-only\">円の線の上か、<b>円の内側</b>に指を置く</span><span class=\"pc-only\">円の線にカーソルを乗せる</span>。「住所の目安」が出ます（距離は出ません）</td></tr>\n<tr><td>一本の経路だけを大きく見る</td><td>一覧の名前を押すと、その場に小さな窓が開き、その経路だけを拡大して映します。同じ道のりの経路は一緒に映ります</td></tr>\n<tr><td>下の地図を変える</td><td>地図の枠の中の<b>下のまん中の並び</b>で、淡色・標準・白地・<b>写真</b>・店舗から選ぶ。並びはいつもそこにあります</td></tr>\n<tr><td>真ん中の住所を知る</td><td><b class=\"key\">地図操作オン</b> のあいだ、地図の真ん中に<b>黒い十字</b>が出て、その場所の住所が<b>下の地図の並びのすぐ上の青枠</b>に出ます。地図を止めるたびに書き換わります（町名・丁目まで。番地は出ません）</td></tr>\n<tr><td>地図へ戻る</td><td>画面下の <b class=\"key\">TOP</b> を押すと、<b>地図の上の端へ戻ります</b>。地図が画面いっぱいに見えます。見出し（題・保存日・版）を見るときは、上へ送ってください<span class=\"sp-only\">。<b>縦向きのスマホは、開いたときもこの見え方で始まります</b></span></td></tr>\n</table>\n\n<div class=\"note\">\n<b>航空写真がいちばん見やすいはずです。</b>地図の下のまん中の並びで<b>「写真」</b>を選び、地図操作オンにして拡大してください。屋根の形や駐車場まで見えます。\n</div>\n\n<h2>表でできること</h2>\n\n<h3>数え方は三段</h3>\n\n<table>\n<tr><th>段</th><th>中身</th></tr>\n<tr><td>一段目</td><td>行事会場ごと、または氏名ごとの合計</td></tr>\n<tr><td>二段目</td><td>その中の、日ごと・人ごとの内訳</td></tr>\n<tr><td>三段目</td><td>一件ずつの記録</td></tr>\n</table>\n\n<p><b>左の ▶ を押すと、下の段が開きます。</b>上の <b class=\"key\">氏名で見る</b> <b class=\"key\">行事会場で見る</b> で並べ方を変えられます。<b class=\"key\">表を全部ひらく</b> で、すべての段を一度に開けます。</p>\n\n<p>画面の表には、件数・岡山・倉敷・枚数を出しています。<b>距離はエクセルで見ます。</b></p>\n\n<p>集計の見出しには <b>「経路 ◯本・住所の目安 ◯件」</b> のように出ます。<b>前者がピンクの線、後者が青の円の数です。</b>枚数はどちらも同じように数えています。</p>\n\n<h3>表から地図へ</h3>\n\n<p><b>表の欄（会場名・氏名・日付）を押すと、地図に切り替わり、その分だけが表示されます。</b>ほかの経路は消えます。</p>\n\n<p><b>押した欄は黄色になります。</b>押した枠（件数・岡山・倉敷など）は、さらに濃い黄色です。表を見れば、いま地図に出ているのがどの欄の分か分かります。</p>\n\n<p>戻すには二つあります。</p>\n\n<ul>\n<li><b class=\"key\">前に戻る</b> … 押す前の見え方にそっくり戻します</li>\n<li><b class=\"key\">すべての経路に戻す</b> … 絞り込みを解いて、全部出します</li>\n</ul>\n\n<h3>期間で絞る</h3>\n\n<p><b>「期間」</b>の欄に <b>7/1</b> と <b>7/31</b> のように入れると、その間の記録だけを数えます。<b class=\"key\">期間を空にする</b> で元に戻ります。</p>\n\n<h3>チェックで絞る</h3>\n\n<p>一覧の各行にチェックがあります。<b>外した経路は、地図からも集計からも外れます。</b></p>\n\n<p><b class=\"key\">チェックされた経路を表示</b> を押すと、チェックの入った経路が全部入るように地図を合わせます。</p>\n\n<div class=\"sp-only\">\n<h2>いまいる場所を出す</h2>\n\n<p>画面下の <b class=\"key\">位置</b> を押すと、いまいる場所が地図に<b>青とマゼンタに点滅する点</b>で出ます。点のまわりの輪は、<b>GPSの誤差の目安</b>です。</p>\n\n<p><b>地図は、自分の位置へついていきます。</b>歩けば地図も一緒に動き、自分がいつも真ん中に来ます。拡大の具合はそのままです。</p>\n\n<p><b>指で地図を動かしているあいだは、ついていくのを止めます。</b>指を離せば、ずらした分を保ったまま、またついていきます。</p>\n\n<p>次のときは、ついていくのをやめます。</p>\n\n<ul>\n<li>指で動かして、自分の位置が画面から外れたとき</li>\n<li>表の欄を押して、地図を絞ったとき</li>\n<li><b class=\"key\">チェックされた経路を表示</b> を押したとき</li>\n</ul>\n\n<p><b>ついていくのが止まると、釦の文字が <b class=\"key\">位置に戻す</b> に変わります。</b>それを押すと、その場で自分の位置に地図を合わせ、またついていきます。</p>\n\n<table>\n<tr><th>釦の文字</th><th>いまの様子</th></tr>\n<tr><td><b class=\"key\">位置</b></td><td>出していません。押すと出します</td></tr>\n<tr><td><b class=\"key\">位置を消す</b></td><td>出していて、地図がついていきます。押すと消します</td></tr>\n<tr><td><b class=\"key\">位置に戻す</b></td><td>出していますが、ついていくのは止まっています。押すと、また自分の位置に合わせます</td></tr>\n</table>\n\n<p><b>集計表などへ画面を送って地図が見えないときに押すと、まず地図の画面に切り替わり、地図の真ん中に自分の位置が出ます。</b>釦が <b class=\"key\">位置を消す</b> のときも、地図が見えていなければ消さずに地図へ戻ります（地図が見えているときに押せば消えます）。</p>\n\n<div class=\"note\">\n<b>押すまで、位置は調べません。</b>押したときに初めて、ブラウザが「位置情報の使用を許可しますか」と聞きます。<b>許可しなければ、位置は出ません。</b>\n</div>\n\n<p><b>あなたの位置は、あなたの画面にしか出ません。</b>この地図はどこへも何も送りませんので、ほかの方に見られることはありません。保存したファイルにも入りません。</p>\n\n<h3>点と一緒に、誤差と住所が出ます</h3>\n\n<table>\n<tr><th>出るもの</th><td>現在地（誤差 約8m）　岡山市東区西大寺一丁目</td></tr>\n<tr><th>誤差</th><td><b>約8mなら信用できます。</b>100mを超えたときは、輪の中のどこか、とお考えください</td></tr>\n<tr><th>住所</th><td><b>番地は出ません。</b>丁目は、その町の住所の付け方によります</td></tr>\n</table>\n\n<div class=\"warn\">\n<b>「位置を消す」を押しても、スマホの設定は変わりません。</b>このアプリが位置を調べるのをやめるだけです。<b>ほかのアプリや地図には、何の影響もありません。</b>\n</div>\n\n<p>許可を聞かれたとき「<b>次回も許可</b>」を選ぶと、<b>ブラウザが覚えます。</b>次に開いたときは聞かれません。<b>このアプリは、それでも釦を押すまで位置を取りにいきません。</b>ブラウザに与えた許可そのものを消したいときは、<b>ブラウザの設定から</b>お願いします。</p>\n</div>\n\n<p class=\"pc-only\"><b>いまいる場所を出す釦（位置）は、スマホで開いたときだけ出ます。</b>パソコンはGPSを持たず、誤差が数百m〜数kmになるためです。</p>\n\n<h2>エクセルに書き出す</h2>\n\n<p class=\"sp-only\"><b>人に渡す版をスマホで開いたときは、書き出しの釦は出ません。</b>保存先が分かりにくく、開くアプリも要るためです。パソコンで開いてお使いください。</p>\n\n<p class=\"pc-only\">集計表の上の <b class=\"key\">エクセル用に保存</b> を押すと、<b>パソコンの「ダウンロード」フォルダ</b>に保存されます。</p>\n\n<table>\n<tr><th>ファイル名</th><td><b>チラシ配布の集計_最初-最後.xlsx</b><br>（期間を入れているときは、その日付が名前に入ります）</td></tr>\n<tr><th>シート</th><td><b>5枚</b>：地区ごと／氏名ごと／行事会場ごと／一行一件／配布の明細</td></tr>\n<tr><th>氏名ごと</th><td>一行が一件です。件数・岡山・倉敷を、それぞれ<b>「氏名・会場・行事日」の三列</b>に分けてあり、氏名と会場は縦にセル結合しています。<b>どの列をそのまま足しても、正しい数になります。</b>右端に<b>補正距離km</b>（同じ道のりの重なりを引いたあとの距離）があります</td></tr>\n<tr><th>行事会場ごと</th><td>同じ組み立てで、件数・岡山・倉敷を<b>「会場・行事日・氏名」の三列</b>に分けてあります。補正距離の列はありません（同じ道のりの重なりは会場をまたぐため）。差引は表の下に一行だけ置いてあります</td></tr>\n<tr><th>枚数</th><td>枚数の列はありません。<b>岡山と倉敷を足した数が枚数です</b></td></tr>\n</table>\n\n<div class=\"note\">\n<b>「同じ道のりの重なり（差引）」という行があります。</b>同じ道のりで二種類のチラシを配ると、距離を二度数えてしまいます。その分を引くための行です。距離の列を足すと、実際に歩いた距離になります。\n</div>\n\n<p><b>いま画面に出ている分が、そのまま書き出されます。</b>期間で絞ったり、チェックを外したりしていれば、その状態のまま書き出されます。全部を出したいときは、先に <b class=\"key\">期間を空にする</b> と <b class=\"key\">すべての経路に戻す</b> を押してください。</p>\n\n<div class=\"pc-only\">\n<h2>見え方を保存し直す（人に渡す版）</h2>\n\n<p>人に渡す版をパソコンやタブレットで開くと、<b class=\"key\">この見え方で保存し直す</b> という釦が出ます。<b>スマホでは出ません。</b></p>\n\n<p>押すと、いまの見え方を持ったまま <b>index.html</b> を書き出します。持ち越すのは次のものです。</p>\n\n<ul>\n<li>地図の真ん中と拡大、下の地図</li>\n<li>表の絞り（押していた欄）と、表の開き具合（全部ひらく・開いていた下層）</li>\n</ul>\n\n<p>書き出した index.html は、<b>開いたとき、保存した見え方のまま</b>出ます（経路に合わせて引いたりしません）。上に「◯◯ の分だけを地図に映しています」の帯が出ていれば、<b class=\"key\">すべての経路に戻す</b> で全部に戻せます。</p>\n\n<div class=\"note\">\n中の仕組み（釦の働きなど）は、開いているファイルのままです。新しい版の働きにしたいときは、本体から出し直してください。\n</div>\n</div>\n\n<h2>困ったとき</h2>\n\n<p class=\"q\">写真がぼやける</p>\n<p><b class=\"key\">地図操作オン</b> を押してから拡大していますか。押さずにつまむと、ページが拡大されるだけで、写真は細かくなりません。<b>一度オフにしてからオンを押し直す</b>と、絵が描き直されて元に戻ります。</p>\n\n<p class=\"q\">地図が動かない</p>\n<p><b class=\"key\">地図操作オン</b> になっていますか。青い枠が出ていれば、オンです。</p>\n\n<p class=\"q\">ページが上下に動かない</p>\n<p>逆に <b class=\"key\">地図操作オン</b> のままかもしれません。オフに戻してください。</p>\n\n<div class=\"sp-only\">\n<p class=\"q\">コメントが消えない</p>\n<p>地図の<b>何も無い所に、0.4秒ほど指を置いてください。</b>10秒たてば自然に消えます。</p>\n\n<p class=\"q\">地図が勝手に動く</p>\n<p><b class=\"key\">位置</b> を押したあと、地図が自分の位置へついていっています。<b>指で動かして自分の位置を画面の外へ出すと止まります。</b><b class=\"key\">位置を消す</b> でも止まります。</p>\n\n<p class=\"q\">急に閉じてトークに戻った</p>\n<p>指で下へ強くはらうと、LINEが画面を閉じます。<b>もう一度開けば戻ります。</b>「ブラウザで開く」を使えば起きません。</p>\n</div>\n\n<p class=\"q\">経路が出てこない</p>\n<p>期間で絞っているか、チェックが外れているか、表から絞り込んだままかもしれません。<b class=\"key\">期間を空にする</b> と <b class=\"key\">すべての経路に戻す</b> を押してみてください。</p>\n\n<p class=\"q\">右下の「国土地理院」を押したら、どうなる</p>\n<p><b>すぐには開きません。</b>「国土地理院の…ページを開きますか？」と確かめてから開きます。指が触れただけで地図から離れないためです。見終わったら「＜」（戻る）を押すか、開いたタブを閉じると、この地図に戻ります。<b>戻ったときは、開く前の見え方（地図の真ん中・拡大・表の絞り）のまま開きます。</b>位置の表示だけは、もう一度 <b class=\"key\">位置</b> を押してください。</p>\n\n<p class=\"q\">住所の青枠に「住所を引けませんでした」と出る</p>\n<p>住所は国土地理院に問い合わせています。<b>通信がつながっているか</b>お確かめください。海の上などは「この場所の住所はありません」と出ます。</p>\n\n<p class=\"q\">青い円ばかりで、線が無い人がいる</p>\n<p><b>その方は、経路記録アプリを使わずに配られた分です。</b>配っていないわけではありません。道のりの記録が無いため、だいたいの場所を円で置いてあります。</p>\n\n<h2>氏名について</h2>\n\n<p><b>人に渡す版（共有版）では、氏名は姓だけになっています。</b>下の名前は入っていません。</p>\n\n<footer>\n国土地理院の地図・航空写真を使用しています。<br>\n地図の表示には Leaflet を使っています。\n</footer>\n";
 /* 「TOPへ」と同じ作り。画面に固定し、どこへ動いても出したままにします。
    集計表の上に置いていたときは（v179）、下へ動かすと見えなくなりました。
    受け取った方が最初に探すものですので、常に見えている所に置きます。 */
@@ -121220,7 +121350,46 @@ function geoBtnText(){
   b.setAttribute('aria-pressed', geoOn?'true':'false');
   if(typeof keepSize==='function') keepSize();
 }
+/* 地図がいま画面に見えているか（v244）。地図の半分以上が見えていれば「見えている」とします。
+   画面下の釦の帯の分は、見えていない所に数えます。 */
+function mapOnScreen(){
+  const m=document.getElementById('map'); if(!m) return true;
+  const r=m.getBoundingClientRect();
+  let H=(window.visualViewport?visualViewport.height:innerHeight);
+  const bg=document.getElementById('fbarBg');
+  if(bg && getComputedStyle(bg).display!=='none') H=Math.min(H, bg.getBoundingClientRect().top);
+  const vis=Math.max(0, Math.min(r.bottom,H)-Math.max(r.top,0));
+  return r.height>0 && vis>=r.height*0.5;
+}
+/* 地図の画面に切り替えます（「TOP」と同じ見え方）。切り替えたかどうかを返します。 */
+function goMapScreen(){
+  const m=document.getElementById('map'); if(!m) return false;
+  const r=m.getBoundingClientRect();
+  if(Math.abs(r.top)<=2 && mapOnScreen()) return false;       // もう地図の画面にいる
+  if(typeof goMapTop==='function') goMapTop();
+  try{ map.invalidateSize(); }catch(e){}
+  return true;
+}
+/* 最後に届いた位置へ、その場で真ん中に合わせます。まだ届いていなければ、届いた瞬間に合わせます。 */
+function geoCenterNow(){
+  const back = geoPos ? geoPos.slice() : ((geoDot && geoDot.getLatLng) ? geoDot.getLatLng() : null);
+  geoRecenter=true;
+  if(back){ try{ map.setView(back, map.getZoom(), {animate:false}); }catch(e){} }
+  return !!back;
+}
 function geoToggle(){
+  /* スマホで画面を送って地図が見えないときに押したら、まず地図の画面に切り替え、
+     地図の真ん中に自分の位置を出します（v244・本人の決め）。
+     釦が「位置を消す」（ついていっている最中）でも、地図が見えていなければ消さずに地図へ戻ります。
+     地図が見えているときに押せば、これまでどおり消します。 */
+  if(geoOn && geoFollow && !mapOnScreen()){
+    goMapScreen();
+    geoPause=false; clearTimeout(geoPauseT); geoPauseT=null;
+    geoCenterNow();
+    geoState('位置：地図に戻り、自分の位置を真ん中に合わせました・追随中');
+    geoSay('地図に戻り、自分の位置を真ん中に合わせました。');
+    return;
+  }
   /* 出ているのに止まっているとき（表で絞った・枠の外へ出た）に押したら、
      消すのではなく、また自分の位置に合わせます（v232・本人の決め）。
      これまでは入り切りだけだったので、止まったあとに押すと位置表示ごと消え、
@@ -121235,6 +121404,7 @@ function geoToggle(){
     geoFollow=true; geoPause=false; geoRecenter=true;
     clearTimeout(geoPauseT); geoPauseT=null;
     geoBtnText();
+    goMapScreen();                                 // 地図が見えていなければ、まず地図の画面へ（v244）
     try{ if(back) map.setView(back, map.getZoom(), {animate:false}); }catch(e){}
     geoState('位置：また自分の位置に合わせました・追随中');
     geoSay('また自分の位置に合わせます。');
@@ -121248,6 +121418,7 @@ function geoToggle(){
     return;
   }
   geoOn=true;                                  // 入れる。ここで初めて取りにいきます
+  goMapScreen();                               // 地図が見えていなければ、まず地図の画面へ（v244）
   geoWaitStart(); geoState('位置：調べています…（0秒）');
   /* 押したときは、いつでも真ん中から始めます（v232）。
      「いったん止め」が残っていると、位置が届いても地図が動きませんでした。
@@ -121558,10 +121729,13 @@ function goBack(){
   const b=backState;
   backState=null;
   dayPick=b?b.d:null; whoPick=b?b.w:null; cityPick=b?b.c2:null;
+  if(typeof allPick!=='undefined') allPick=false;
   tallyNow();
   showBack(!!(dayPick||whoPick||cityPick));
   /* 一つ前の欄の色に戻します。一つ前が絞っていなければ、色は消えます（v236）。 */
-  pickedSel=(dayPick||whoPick||cityPick)?pickedPrev:null; pickedPrev=null;
+  /* 一つ前に押した欄の色へ戻します（v245）。合計の「件数」のように全部を出す欄も、押した欄に変わりありません。
+     一つ前に何も押していなければ、色は消えます。 */
+  pickedSel=pickedPrev; pickedPrev=null;
   if(typeof paintPicked==='function') paintPicked();
   if(b&&b.center){ map.invalidateSize(); map.setView(b.center,b.zoom); }
   if(!backFrom()){                       // 押した欄が分かればそこへ、分からなければ集計の頭へ
@@ -121642,6 +121816,7 @@ function setDup(){
   goMap(pickSet);
 }
 function clearPick(){ dayPick=null; whoPick=null; cityPick=null; dupPick=false; backState=null;
+  if(typeof allPick!=='undefined') allPick=false;
   pickedSel=null; pickedPrev=null; if(typeof paintPicked==='function') paintPicked();   // 色も消す（v236）
   pickSet=null; applyPick(); drawPickBar(); showBack(false);
   if(typeof drawOnce==='function') drawOnce();      // 「表示中 ◯本」も書き直す
@@ -121681,6 +121856,7 @@ function setPick(v,d,wname,city){
     if(same){ dayPick=null; backState=null; tallyNow(); showBack(false); return; }
   }
   remember();                            // 押す前の様子を控えてから絞ります
+  if(typeof allPick!=='undefined') allPick=false;
   whoPick=null; cityPick=null;
   dayPick={v,d:d||null,w:wname||null,city:city||null};
   tallyNow();
