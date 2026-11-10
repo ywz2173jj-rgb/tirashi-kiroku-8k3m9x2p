@@ -493,7 +493,11 @@ input, textarea, select{ border-radius:3px; }
 /* 二つの高さを、文字によらず揃えます。
    「使い方」（日本語）と「TOP」（英字）では行の高さが違い、36pxと34pxになりました。
    指定は同じでも、中身の文字で変わります。行の高さを決め打ちして揃えます。 */
-#topBtn, #howtoBtn, #geoBtn, #musicBtn{ position:fixed; z-index:1300; display:block; line-height:20px;
+/* white-space:nowrap（v253）。釦の字を折らせません。
+   窓の幅を狭めると、釦は前の場所（新しい窓の右端より外）に残ったまま幅を測られます。
+   置き場が足りないので字が折れて幅が縮み（71px→45px）、その縮んだ幅で並べ直すので、
+   元の幅に戻った釦どうしが重なりました（使い方と音楽が18px、音楽とTOPが5px）。 */
+#topBtn, #howtoBtn, #geoBtn, #musicBtn{ white-space:nowrap; position:fixed; z-index:1300; display:block; line-height:20px;
          border:2px solid var(--go); background:#fff; color:var(--go);
          border-radius:4px; font-weight:700; cursor:pointer;
          font-size:13px; min-height:34px; padding:7px 14px;
@@ -650,7 +654,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 <header class="cover">
   <button type="button" id="toReport" class="ghost toRpt">報告作成へ</button>
   <h1>徒歩軌跡 まとめ</h1>
-  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-11に保存・268本・合計 1092.82 km・住所の目安 182件。（v252）</p>
+  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-11に保存・268本・合計 1092.82 km・住所の目安 182件。（v253）</p>
 </header>
 
 <div id="map"></div>
@@ -159491,6 +159495,8 @@ function keepSize(){
       tb2                                                     // TOP
     ].filter(Boolean);
     const gap = 8;
+    /* 幅は、左端へ寄せてから測ります（v253）。前の場所が窓の外だと、狭い置き場で測ることになります */
+    row.forEach(e=>{ e.style.left='0px'; });
     const wid = row.map(e=>e.offsetWidth||80);
     const all = wid.reduce((a,b)=>a+b,0) + gap*(row.length-1);
     let x = cx - (all/2)/s2;                                  // 左端から置いていきます
