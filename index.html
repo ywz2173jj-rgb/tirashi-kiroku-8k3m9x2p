@@ -521,6 +521,13 @@ html.isphone #musicBox{ bottom:70px; }
 #musicBox button, #musicBox a.mb-open{ white-space:nowrap; flex:0 0 auto; margin:0; width:auto; }
 #musicBox .mb-note{ padding:8px 10px; line-height:1.6; }
 #musicBox .mb-foot{ padding:6px 8px; text-align:right; }
+/* 横向きで高さが足りないとき（v258）。見出しを映像の上ではなく、左の細い縦帯にして、窓を低くします。
+   映像は 200px 以上のまま、ほかの物で隠さず、横に並べるだけです。.slim は musicPlace が付け外しします */
+#musicBox.slim{ display:flex; flex-direction:row; width:auto; max-width:94vw; }
+#musicBox.slim .mb-head{ flex:0 0 auto; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:6px; width:72px; padding:6px; }
+#musicBox.slim .mb-head::before{ content:'♪'; text-align:center; font-weight:700; line-height:20px; }
+#musicBox.slim .mb-ttl{ display:none; }
+#musicBox.slim .mb-body{ flex:0 0 auto; width:min(260px,calc(94vw - 76px)); }
 /* 釦が四つになったので、幅の狭いスマホでは左右の余白を詰めます（v249）。
    幅360で「位置を消す」のとき、並びが画面から2pxずつはみ出しました */
 @media (pointer:coarse) and (max-width:400px){ #topBtn, #howtoBtn, #geoBtn, #musicBtn{ padding:10px 13px; } }
@@ -654,7 +661,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 <header class="cover">
   <button type="button" id="toReport" class="ghost toRpt">報告作成へ</button>
   <h1>徒歩軌跡 まとめ</h1>
-  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-11に保存・268本・合計 1092.82 km・住所の目安 182件。（v257）</p>
+  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-12に保存・268本・合計 1092.82 km・住所の目安 182件。（v258）</p>
 </header>
 
 <div id="map"></div>
@@ -155811,7 +155818,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.833643],"zoom":10,"file":"徒歩軌跡 まとめ_20261111","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],[".18日天神山",".18日天神山文化プラザ"],["11.1日天神山","11.1日天神山文化プラザ"],["くらしき健康福祉","くらしき健康福祉プラザ"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.833643],"zoom":10,"file":"徒歩軌跡 まとめ_20261112","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],[".18日天神山",".18日天神山文化プラザ"],["11.1日天神山","11.1日天神山文化プラザ"],["くらしき健康福祉","くらしき健康福祉プラザ"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -158879,13 +158886,49 @@ function musicDrag(box,head){
 /* 音楽の窓を、画面下の釦の並びのすぐ上に置く（v250）。
    釦は、指で画面を拡大しても見えている範囲の下に付いてきます（keepSize）。
    窓は v249 では元の場所に残り、2倍に拡大すると「止める」ごと画面の外へ出ました。
-   釦と同じ測り方で置き、同じ割合で縮めます。たたんだ窓は、下の地図の並びも上へよけさせます。 */
+   釦と同じ測り方で置き、同じ割合で縮めます。
+   v258：見えている範囲に、窓の全体（見出し・止める釦・映像・注記）が収まるようにします。
+     ・上は、見えている範囲の上の端まで。下は、画面下の釦の並びの上まで（釦が映像にかぶらないように）。
+     ・映像の高さは、見えている高さに合わせます。ただし 200px を下回らせません（YouTube の決まり）。
+     ・横向きで、縦に並べても 200px が取れないときだけ、見出しを映像の上ではなく左の縦帯にします（.slim）。
+     ・それでも入らない高さ（約260px未満の横向き）では、釦にはかぶらせず、上が切れるのを許します（本人の決め）。 */
+/* 端末の向きが横か。向きは screen.orientation で見分けます（見えている範囲の縦横では見分けません。
+   キーボードや帯で高さが縮んだとき、横向きと取り違えるためです）。古い iPhone は window.orientation を使います */
+function musicLandscape(){
+  try{ const o=screen.orientation && screen.orientation.type; if(o) return o.indexOf('landscape')===0; }catch(e){}
+  if(typeof window.orientation==='number') return Math.abs(window.orientation)===90;
+  return window.innerWidth > window.innerHeight;
+}
+/* 映像部分の高さと、窓の形（縦に並べる／左に縦帯）を決めます。avail は、窓に使える高さ（窓の中の px 換算）。
+   縦長の動画かどうかは、musicGuard が映像部分の高さに入れる値で分かります
+   （'min(' で始まる＝縦長、空＝横長、px＝このあと musicPlace が入れた値で、前の判定を引き継ぐ）。 */
+function musicFit(box,avail){
+  const bd=box.querySelector('.mb-body'), hd=box.querySelector('.mb-head');
+  if(!bd||!hd) return;                              // 直に開いたとき（埋め込みなし）は、映像が無いので対象外
+  const h0=bd.style.height;
+  if(h0==='') box.__vert=false; else if(h0.indexOf('min(')===0) box.__vert=true;
+  const vert=!!box.__vert;
+  const want=vert ? Math.min(400,Math.round(window.innerHeight*0.55)) : 204;
+  const brd=box.offsetHeight-box.clientHeight;      // 枠の太さ（上下の合計）
+  box.classList.remove('slim');
+  const ovh=hd.offsetHeight+brd;                    // 見出しを上に置く形の、映像以外の高さ
+  let H=Math.min(want,avail-ovh), slim=false;
+  if(H<200 && musicLandscape()){ slim=true; H=Math.min(want,avail-brd); }
+  H=Math.max(200,Math.floor(H));
+  box.classList.toggle('slim',slim);
+  const hs=(vert||H!==204)?H+'px':'';
+  if(bd.style.height!==hs) bd.style.height=hs;
+}
 function musicPlace(){
   const box=document.getElementById('musicBox'), b=document.getElementById('musicBtn');
   if(!box||!b) return;
   const vv=window.visualViewport, s=(vv&&vv.scale)||1;
-  const cx=(vv?vv.offsetLeft:0)+(vv?vv.width:innerWidth)/2;
-  const by=(vv?vv.offsetTop:0)+(vv?vv.height:innerHeight)-10/s;
+  const vx=vv?vv.offsetLeft:0, vy=vv?vv.offsetTop:0, vw=vv?vv.width:innerWidth, vh=vv?vv.height:innerHeight;
+  const cx=vx+vw/2;
+  const by=vy+vh-10/s;
+  /* 下は、画面下の釦の並びの上まで。釦は窓より前に出るので、重なると映像の前に釦がかぶります（YouTube の決まりに反する） */
+  const low=Math.min(vy+vh, b.getBoundingClientRect().top-4);
+  musicFit(box,(low-vy)*s);
   /* 動かした分（v252）。見出しをつまんで動かした量を、いつもの置き場所に足します。
      画面の拡大や向きが変わっても、見えている範囲からはみ出さないように寄せ直します。 */
   const mv=box.__mv||(box.__mv={x:0,y:0});
@@ -158894,15 +158937,29 @@ function musicPlace(){
   box.style.transform='translate(-50%,-100%) scale('+(1/s)+')';
   box.style.transformOrigin='bottom center';
   box.style.left=(x0+mv.x)+'px'; box.style.top=(y0+mv.y)+'px';
-  const r=box.getBoundingClientRect(), vw=vv?vv.width:innerWidth, vh=vv?vv.height:innerHeight;
+  const r=box.getBoundingClientRect();
   let fx=0, fy=0;
-  if(r.width<=vw){ if(r.left<0) fx=-r.left; else if(r.right>vw) fx=vw-r.right; }
-  /* 下は、画面下の釦の並びの上まで。釦は窓より前に出るので、重なると映像の前に釦がかぶります（YouTube の決まりに反する） */
-  const low=Math.min(vh, b.getBoundingClientRect().top-4);
-  if(r.height<=low){ if(r.top<0) fy=-r.top; else if(r.bottom>low) fy=low-r.bottom; }
-  if(fx||fy){ mv.x+=fx; mv.y+=fy; box.style.left=(x0+mv.x)+'px'; box.style.top=(y0+mv.y)+'px'; }
+  if(r.width<=vw){ if(r.left<vx) fx=vx-r.left; else if(r.right>vx+vw) fx=vx+vw-r.right; }
+  if(r.height<=low-vy){ if(r.top<vy) fy=vy-r.top; else if(r.bottom>low) fy=low-r.bottom; }
+  else fy=low-r.bottom;                    // 入りきらないときも、釦の上に寄せる（上が切れるのは許す）
+  if(fx||fy){
+    /* 寄せた分を覚えるのは、つまんで動かしているあいだだけ（端より外へは持っていけない）。
+       向きや大きさが変わったときの寄せは、見かけだけにして覚えません。向きを戻せば、元の場所に戻ります */
+    const keep=box.classList.contains('drag');
+    if(keep){ mv.x+=fx; mv.y+=fy; }
+    box.style.left=(x0+mv.x+(keep?0:fx))+'px'; box.style.top=(y0+mv.y+(keep?0:fy))+'px';
+  }
   if(typeof window.__dockLift==='function'){ try{ window.__dockLift(); }catch(e){} }
 }
+/* 向きが変わった直後にも収め直します（v258）。向きの知らせと画面の大きさの変化は、順番が決まっていないので、
+   少し間をおいてもう一度寄せます */
+(function(){
+  const again=()=>{ if(!document.getElementById('musicBox')) return;
+    musicPlace(); setTimeout(musicPlace,150); setTimeout(musicPlace,500); };
+  try{ if(screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener('change',again); }catch(e){}
+  window.addEventListener('orientationchange',again);
+  window.addEventListener('resize',again);
+})();
 function topBtnBox(){
   let b=document.getElementById('topBtn');
   if(!b){
