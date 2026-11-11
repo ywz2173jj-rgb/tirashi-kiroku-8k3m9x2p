@@ -654,7 +654,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 <header class="cover">
   <button type="button" id="toReport" class="ghost toRpt">報告作成へ</button>
   <h1>徒歩軌跡 まとめ</h1>
-  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-11に保存・268本・合計 1092.82 km・住所の目安 182件。（v254）</p>
+  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-11に保存・268本・合計 1092.82 km・住所の目安 182件。（v255）</p>
 </header>
 
 <div id="map"></div>
@@ -158814,13 +158814,16 @@ function musicGuard(box,fr){
     const pl=e&&e.target; if(!pl||!document.contains(fr)) return;
     let list=[], idx=-1, vid='';
     try{ list=pl.getPlaylist()||[]; idx=pl.getPlaylistIndex(); vid=idOf(pl.getVideoUrl()); }catch(_){}
-    const inList=list.length>0 && (!vid || list.indexOf(vid)>=0);
+    /* 再生リストの中身が取れていないとき（読み込み直後・曲の切り替わりの間）は、外へ出たとは判断しない。
+       以前は「中身が空＝外」としていたため、切り替わりのたびに再生リストを掛け直し、曲が頭から繰り返されたり止まったりした */
+    const known=list.length>0;
+    const inList=known && (!vid || list.indexOf(vid)>=0);
     if(e.data===1||e.data===3){                 // 再生中・読み込み中
-      if(inList){ st.had=true; if(idx>=0) st.last=idx; if(e.data===1) st.fix=0; }
-      else if(st.had) back(pl);                 // 再生リストの外へ出た
+      if(inList){ st.had=true; if(idx>=0) st.last=idx; if(e.data===1){ st.fix=0; st.skip=0; } }
+      else if(st.had && known) back(pl);        // 再生リストの外へ出た
     }else if(e.data===0){                       // 終わった
       if(inList && idx>=list.length-1){ try{ pl.playVideoAt(0); }catch(_){} }
-      else if(!inList && st.had) back(pl);
+      else if(!inList && known && st.had) back(pl);
     }
   };
   const onError=e=>{                            // 流せない曲は飛ばす
