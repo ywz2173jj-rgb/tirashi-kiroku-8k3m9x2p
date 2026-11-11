@@ -342,6 +342,11 @@ dialog#pop::backdrop{background:rgba(26,33,28,.45)}
 /* 右下の出典（v235）。追加の出所が長いときも読めるよう、スマホでは字を少し小さくします。
    幅は、左下の縮尺を避けた分まで（仕掛けの側で決めます）。 */
 html.isphone .leaflet-control-attribution{font-size:10px;line-height:1.35}
+/* 出典は一行に収めます（v259・本人の決め）。写真などで足される長い出所（Landsat・NASA の英文など）は、
+   欄の端で「…」に切ります。欄を押すと全文が開き、もう一度押すと一行に戻ります（リンクの上は、これまでどおり） */
+.leaflet-control-attribution{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-sizing:border-box; }
+.leaflet-control-attribution.cr-clip{ cursor:pointer; }
+.leaflet-control-attribution.cr-open{ white-space:normal; overflow:visible; cursor:pointer; }
 /* スマホでは「下の地図」の見出しを出しません（v222・本人の決め）。
    幅320pxの iPhone では、見出しの52pxのせいで「店舗」が画面の外にはみ出していました。
    見出しを外すと、淡色〜店舗の五つが一段に収まります。パソコンでは残します。 */
@@ -661,7 +666,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 <header class="cover">
   <button type="button" id="toReport" class="ghost toRpt">報告作成へ</button>
   <h1>徒歩軌跡 まとめ</h1>
-  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-12に保存・268本・合計 1092.82 km・住所の目安 182件。（v258）</p>
+  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-12に保存・268本・合計 1092.82 km・住所の目安 182件。（v259）</p>
 </header>
 
 <div id="map"></div>
@@ -155967,7 +155972,13 @@ window.__credSave=function(){
     const m=document.getElementById('map'); if(!m || m.__credHooked) return; m.__credHooked=true;
     m.addEventListener('click',ev=>{
       const a=ev.target && ev.target.closest && ev.target.closest('.leaflet-control-attribution a[href]');
-      if(!a) return;
+      if(!a){
+        /* 一行に収めた出典を押すと、全文が開く（v259）。開いたら、並びを持ち上げ直す */
+        const cb=ev.target && ev.target.closest && ev.target.closest('.leaflet-control-attribution');
+        if(cb){ cb.classList.toggle('cr-open'); ev.stopPropagation();
+          setTimeout(()=>{ try{ if(typeof window.__dockLift==='function') window.__dockLift(); }catch(e){} },0); }
+        return;
+      }
       ev.preventDefault(); ev.stopPropagation();
       ask(a.href, a.textContent.trim());
     },true);
@@ -156022,6 +156033,12 @@ window.__credSave=function(){
     const a=m.querySelector('.leaflet-control-attribution');
     const d=m.querySelector('.baseDock'), ab=m.querySelector('.addrbar');
     if(a) a.style.maxWidth=Math.max(120, m.clientWidth-130)+'px';   // 左下の縮尺を避ける
+    if(a){                                                          // 一行に収まらず「…」になっているか（v259）
+      const open=a.classList.contains('cr-open');
+      const clip=!open && a.scrollWidth>a.clientWidth+1;
+      a.classList.toggle('cr-clip',clip);
+      if(clip) a.title='押すと全文が出ます'; else if(open) a.title='押すと一行に戻ります'; else a.removeAttribute('title');
+    }
     const ah=a?a.getBoundingClientRect().height:0;
     let bottom=(ah>24)?Math.round(ah)+8:28;
     /* 画面下の釦（位置・使い方・TOP）にかかりそうなら、並びをその上へ持ち上げます（v243）。
