@@ -666,7 +666,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 <header class="cover">
   <button type="button" id="toReport" class="ghost toRpt">報告作成へ</button>
   <h1>徒歩軌跡 まとめ</h1>
-  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-13に保存・270本・合計 1106.37 km・住所の目安 183件。（v260）</p>
+  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-13に保存・270本・合計 1106.37 km・住所の目安 183件。（v261）</p>
 </header>
 
 <div id="map"></div>
@@ -160752,6 +160752,16 @@ function musicToggle(){
           +'&origin='+encodeURIComponent(location.origin);
     body.appendChild(fr); box.appendChild(body);
     musicGuard(box,fr);
+    /* 指の画面では、見出しの題を案内に替える（v261・本人の決め）。iPhone の Safari などは、枠の中の ▶ を自分で押すまで鳴らさない。
+       高さは変わらない（題の文字だけ替える）。鳴り始めたら題に戻す。autoplay の条件・見張りには触れない */
+    if(window.matchMedia&&matchMedia('(pointer:coarse)').matches){
+      ttl.textContent='♪ 映像の ▶ を押すと始まります';
+      const tm=setInterval(()=>{
+        if(!document.contains(box)){ clearInterval(tm); return; }
+        let st=-1; try{ st=box.__pl&&box.__pl.getPlayerState?box.__pl.getPlayerState():-1; }catch(_){}
+        if(st===1){ ttl.textContent='♪ '+MUSIC_TITLE; clearInterval(tm); }
+      },500);
+    }
   }else{
     head.appendChild(stop); box.appendChild(head);
     const note=document.createElement('div'); note.className='mb-note';
