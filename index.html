@@ -666,7 +666,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 <header class="cover">
   <button type="button" id="toReport" class="ghost toRpt">報告作成へ</button>
   <h1>徒歩軌跡 まとめ</h1>
-  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-13に保存・270本・合計 1106.37 km・住所の目安 183件。（v259）</p>
+  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-13に保存・270本・合計 1106.37 km・住所の目安 183件。（v260）</p>
 </header>
 
 <div id="map"></div>
@@ -157773,7 +157773,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654109,133.833389],"zoom":10,"file":"徒歩軌跡 まとめ_20261113","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],[".18日天神山",".18日天神山文化プラザ"],["11.1日天神山","11.1日天神山文化プラザ"],["くらしき健康福祉","くらしき健康福祉プラザ"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.833643],"zoom":10,"file":"徒歩軌跡 まとめ_20261113","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],[".18日天神山",".18日天神山文化プラザ"],["11.1日天神山","11.1日天神山文化プラザ"],["くらしき健康福祉","くらしき健康福祉プラザ"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -160812,8 +160812,13 @@ function musicGuard(box,fr){
     st.skip=(st.skip||0)+1; if(st.skip>12) return;          // 全部が流せないときに、回り続けない
     try{ pl.nextVideo(); }catch(_){}
   };
+  /* 押した直後に再生を命じる（v260・本人の決め）。スマホで「押したのに鳴らない」ことがあるため。
+     窓口の準備ができたとき、まだ流れていなければ playVideo を一度だけ呼ぶ。autoplay の条件・referrerpolicy は変えない。
+     iPhone の Safari など、端末が許さないときは、これでも鳴らないことがある（そのときは窓の中の再生を押す） */
+  const onReady=e=>{ const pl=e&&e.target; if(!pl||!document.contains(fr)) return;
+    try{ const s=pl.getPlayerState(); if(s!==1&&s!==3) pl.playVideo(); }catch(_){} };
   const init=()=>{ if(!document.contains(fr)) return;
-    try{ box.__pl=new YT.Player(fr,{events:{onStateChange:onState,onError:onError}}); }catch(e){} };
+    try{ box.__pl=new YT.Player(fr,{events:{onReady:onReady,onStateChange:onState,onError:onError}}); }catch(e){} };
   if(window.YT&&YT.Player){ setTimeout(init,0); return; }   // 窓を画面に置いたあとで（二度目に開いたときは、窓口がもう読めている）
   const prev=window.onYouTubeIframeAPIReady;
   window.onYouTubeIframeAPIReady=function(){ try{ if(typeof prev==='function') prev(); }catch(e){} init(); };
