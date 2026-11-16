@@ -419,8 +419,36 @@ html.rptOpen body{overflow:hidden}
 .mode .mbig{display:block;width:100%;padding:16px;margin:10px 0;font-size:20px;font-weight:700;border:2px solid #1E7F4F;
             border-radius:12px;background:#fff;color:#1E7F4F}
 .mode .mbig small{display:block;font-size:13px;font-weight:400;color:#445;margin-top:4px}
+/* 入口画面の小さい釦「ラジオ」（v262）。radio-test へのリンクだけ */
+.mode .msmall{display:inline-block;padding:9px 18px;margin:2px 0 0;font-size:14px;font-weight:700;border:2px solid #1E7F4F;
+              border-radius:10px;background:#fff;color:#1E7F4F;text-decoration:none}
 .mode .mnote{font-size:13px;margin-top:8px}
 .cover .toRpt{float:right;margin:4px 0 0 8px}
+/* ラジオの窓（v264）。音楽の窓（1296）と画面下の釦（1300）より下の層に置き、再生中の映像を隠しません。
+   下の余白（76px）は、画面下の釦の並びのぶんです。 */
+.radio{position:fixed;inset:0;z-index:1295;background:rgba(20,30,50,.55);display:flex;align-items:flex-start;justify-content:center;
+       padding:16px 16px 76px;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.radio .rdbox{background:#fff;border-radius:14px;padding:14px 16px 16px;width:100%;max-width:420px;color:#1a211c;text-align:left;
+              box-shadow:0 4px 18px rgba(0,0,0,.28)}
+.radio .rdhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.radio h2{margin:0;font-size:20px;color:#1a2b4a}
+.radio .rdlead{margin:2px 0 0;font-size:14px;color:#445}
+.radio h3{margin:14px 0 6px;font-size:14px;color:#445;font-weight:600}
+.radio .rdhead button{min-height:36px;padding:6px 14px;font-size:14px;font-weight:700;background:#fff}
+@media (pointer:coarse){ .radio .rdhead button{ min-height:44px } }
+.radio .rdbtn{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;margin:0 0 8px;padding:7px 14px;
+              background:#fff;color:#1a211c;text-decoration:none;border:2px solid var(--go);border-radius:10px;font-size:18px;font-weight:700}
+.radio .rdbtn:active{background:#D6EFE1}
+.radio .rdbtn small{display:block;font-size:13px;font-weight:400;color:#445}
+.radio .rdbtn em{font-style:normal;font-size:12px;font-weight:700;color:#7A4A00;background:#FFF8EE;border:1px solid #E08000;
+                 border-radius:4px;padding:0 5px;margin-left:8px;vertical-align:2px}
+.radio .rdbtn .go{flex:none;font-size:14px;font-weight:600;color:#fff;background:var(--go);border-radius:999px;padding:5px 13px;white-space:nowrap}
+.radio .rdnote{background:#fff8e1;border:1px solid #f0d58a;border-radius:10px;padding:10px 12px;font-size:14px;margin-top:10px;line-height:1.6}
+.radio .rdline{background:#e9f9ef;border:2px solid #06c755;border-radius:10px;padding:10px 12px;margin-top:10px;font-size:14px;line-height:1.6}
+.radio .rdline a{display:block;margin-top:8px;text-align:center;background:#06c755;color:#fff;font-weight:700;text-decoration:none;
+                 padding:12px;border-radius:8px}
+.radio .rdfoot{margin:12px 0 0;font-size:13px;color:#445;line-height:1.6}
+.radio .rdpage{display:inline-block;margin-top:8px;min-height:44px;line-height:44px;font-size:14px;font-weight:700;color:var(--go)}
 .more2{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;margin-left:6px}
 .more2i{display:inline-flex;gap:5px;align-items:center;font-size:14px;color:#41504a;
         border:1px dashed var(--line);border-radius:4px;padding:1px 6px}
@@ -537,6 +565,18 @@ html.isphone #musicBox{ bottom:70px; }
    幅360で「位置を消す」のとき、並びが画面から2pxずつはみ出しました */
 @media (pointer:coarse) and (max-width:400px){ #topBtn, #howtoBtn, #geoBtn, #musicBtn{ padding:10px 13px; } }
 @media (pointer:coarse) and (max-width:345px){ #topBtn, #howtoBtn, #geoBtn, #musicBtn{ padding:10px 8px; } }
+/* 画面下の「ラジオ」（v266・本人の決め）。ほかの下の釦と同じ見た目です。
+   釦が五つになったので、幅の狭いスマホでは左右の余白をもう一段詰めます（案 A）。
+   幅 320・360・375 で「位置を消す」のとき、並びが画面から 12〜28px はみ出すためです */
+#radioBtn{ white-space:nowrap; position:fixed; z-index:1300; display:block; line-height:20px;
+         border:2px solid var(--go); background:#fff; color:var(--go);
+         border-radius:4px; font-weight:700; cursor:pointer;
+         font-size:13px; min-height:34px; padding:7px 14px;
+         -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+@media (pointer:coarse){ #radioBtn{ font-size:15px; min-height:44px; padding:10px 18px; } }
+#radioBtn.on{ background:var(--go); color:#fff; }
+@media (pointer:coarse) and (max-width:400px){ #topBtn, #howtoBtn, #geoBtn, #musicBtn, #radioBtn{ padding:10px 9px; } }
+@media (pointer:coarse) and (max-width:345px){ #topBtn, #howtoBtn, #geoBtn, #musicBtn, #radioBtn{ padding:10px 5px; } }
 
 /* 押すところでは、文字を選ばせません。
    指で釦をなぞると、スマホが「コピー」の札を出したり文字が青く選ばれたりして、
@@ -666,7 +706,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 <header class="cover">
   <button type="button" id="toReport" class="ghost toRpt">報告作成へ</button>
   <h1>徒歩軌跡 まとめ</h1>
-  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-16に保存・282本・合計 1151.79 km・住所の目安 184件。（v261）</p>
+  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-17に保存・282本・合計 1151.79 km・住所の目安 184件。（v266）</p>
 </header>
 
 <div id="map"></div>
@@ -164154,7 +164194,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 </Folder>
 </Document></kml>
 </script>
-<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.833643],"zoom":10,"file":"徒歩軌跡 まとめ_20261116","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],[".18日天神山",".18日天神山文化プラザ"],["11.1日天神山","11.1日天神山文化プラザ"],["くらしき健康福祉","くらしき健康福祉プラザ"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
+<script id="view" type="application/json">{"base":"標準","over":"なし","opacity":0.3,"center":[34.654463,133.833643],"zoom":9,"file":"徒歩軌跡 まとめ_20261117","from":"","to":"","venueOnly":true,"share":true,"venues":[["備前","備前市民センター"],["瀬戸内","瀬戸内市文化センター"],["児島","児島市民交流センター"],["早島","早島町ゆるびの舎"],["笠岡","サンライフ笠岡"],["玉島","玉島市民交流センター"],["天神山","天神山文化プラザ"],["コンベックス","コンベックス岡山"],["西大寺ふれあい","西大寺ふれあいセンター"],["南ふれあい","南ふれあいセンター"],["岡山ふれあい","岡山ふれあいセンター"],[".18日天神山",".18日天神山文化プラザ"],["11.1日天神山","11.1日天神山文化プラザ"],["くらしき健康福祉","くらしき健康福祉プラザ"],["笠岡市保健","笠岡市保健センター"],["備前市民","備前市民センター"],["備前市市民","備前市市民センター"],["瀬戸内市","瀬戸内市文化センター"],["西ふれあい","西ふれあいセンター"],["828日天神山","828日天神山文化プラザ"]],"nomap":[]}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const GSI='https://cyberjapandata.gsi.go.jp/xyz/';
@@ -167013,6 +167053,7 @@ function modeChooser(){
   ov.innerHTML=`<div class="mbox"><h2>チラシ配布</h2><p>どちらを使いますか</p>
     <button type="button" id="modeRpt" class="mbig">報告作成<small>GPX に報告を書き入れて LINE へ送る</small></button>
     <button type="button" id="modeMap" class="mbig">配布地図<small>配った道のりと集計を見る</small></button>
+    <a id="modeRadio" class="msmall" href="https://ywz2173jj-rgb.github.io/radio-test/">ラジオ</a>
     <p class="mnote">選んだほうを覚えて、次からはそちらで開きます。</p></div>`;
   document.body.appendChild(ov);
   document.getElementById('modeRpt').addEventListener('click',()=>{ rptSet(RPT_MODE,'report'); ov.remove(); rptOpen(); });
@@ -167035,6 +167076,95 @@ const RPT_UI=false;
   };
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go();
 })();
+
+/* ---------- ラジオの窓（v264・本人の決め：案 A） ----------
+   見出しの帯の「ラジオ」を押すと、ページを離れずに、局の一覧の窓を開きます。
+   局を押すと、公式のアプリ（radiko・らじるらじる）が開いて流れます。
+   ページの中で放送を流す仕掛けではありません。radio-test の一覧と同じ作りです。
+   FM岡山は載せません（本人の決め）。radiko の局の印が確かめられていないためです。
+   確かめが済んだら、RADIO_RADIKO に一行足すだけで載ります。
+   窓は、音楽の窓（1296）と画面下の釦（1300）より下の層（1295）に置きます。再生中の映像を隠さないためです。
+   既存の関数・データ・集計・地図・音楽には触れません。
+   v266（本人の決め）：開く釦は、見出しの帯から、画面下の並び（使い方・ラジオ・音楽・TOP）へ移しました。
+   音楽とラジオは、同時に開きません。「ラジオ」を押すと先に音楽を止め、「音楽」を押すと先にラジオの窓を閉じます。
+   radiko・らじるらじるの音は別のアプリで鳴るので、このページからは止められません。 */
+const RADIO_PAGE='https://ywz2173jj-rgb.github.io/radio-test/';
+const RADIO_KEY='radio_last';        // radio-test と同じ鍵。同じ置き場なら「前回」の印が通じます
+const RADIO_RADIKO=[
+  {key:'r:RSK', name:'RSKラジオ',    sub:'RSK山陽放送', url:'https://radiko.jp/#!/live/RSK'},
+  {key:'r:RNC', name:'RNCラジオ',    sub:'西日本放送',  url:'https://radiko.jp/#!/live/RNC'},
+  {key:'r:top', name:'radikoを開く', sub:'局は向こうで選ぶ（いつでも使える）', url:'https://radiko.jp/'}
+];
+const RADIO_NHK=[
+  {key:'n:0', name:'らじるらじる', sub:'NHK AM・FM（地域は広島か大阪を選ぶ）', url:'https://www.nhk.or.jp/radio/'}
+];
+function radioLast(){ try{ return localStorage.getItem(RADIO_KEY)||''; }catch(e){ return ''; } }
+function radioKey(e){ if(e.key==='Escape') radioClose(); }
+function radioClose(){
+  const ov=document.getElementById('radioOv'); if(ov) ov.remove();     // 閉じたら中身ごと捨てます
+  document.removeEventListener('keydown',radioKey);
+  const rb=document.getElementById('radioBtn'); if(rb) rb.classList.remove('on');
+}
+function radioToggle(){ if(document.getElementById('radioOv')) radioClose(); else radioOpen(); }
+function radioOpen(){
+  if(document.getElementById('radioOv')) return;
+  if(document.getElementById('musicBox') && typeof musicStop==='function') musicStop();   // 音楽とは同時に開かない（v266）
+  const last=radioLast();
+  const item=s=>`<a class="rdbtn" data-key="${s.key}" href="${s.url}" rel="noopener"><span>${s.name}${last===s.key?'<em>前回</em>':''}<small>${s.sub}</small></span><span class="go">聴く</span></a>`;
+  const ov=document.createElement('div'); ov.id='radioOv'; ov.className='radio';
+  ov.setAttribute('role','dialog'); ov.setAttribute('aria-label','ラジオ');
+  ov.innerHTML=`<div class="rdbox">
+    <div class="rdhead"><h2>ラジオ</h2><button type="button" id="radioClose">閉じる</button></div>
+    <p class="rdlead">押すと公式アプリが開いて流れます（無料）</p>
+    <div class="rdline" id="radioLine" hidden>LINEの中で開いています。このままだとラジオアプリに切り替わらないことがあります。<a id="radioOutside" href="#">ふつうのブラウザで開き直す</a></div>
+    <h3>民放（radiko・岡山エリアは無料）</h3>
+    <div id="radioList1">${RADIO_RADIKO.map(item).join('')}</div>
+    <h3>NHK（らじるらじる・無料）</h3>
+    <div id="radioList2">${RADIO_NHK.map(item).join('')}</div>
+    <div class="rdnote">聴きながら、この地図やほかのアプリに切り替えても、音は止まりません。止めたいときは、radikoか、らじるらじるの画面で停止してください。</div>
+    <p class="rdfoot">初めて使うときは、App Store／Google Playで「radiko」と「らじるらじる」を入れておいてください。radikoは「位置情報の利用」を許可しないと、岡山の局が出ないことがあります。</p>
+    <a class="rdpage" id="radioPage" href="${RADIO_PAGE}">ラジオのページを開く</a>
+  </div>`;
+  document.body.appendChild(ov);
+  // LINE の中で開かれたときの案内（radio-test と同じ）
+  if(/\bLine\//i.test(navigator.userAgent)){
+    try{
+      const u=new URL(location.href); u.searchParams.set('openExternalBrowser','1');
+      document.getElementById('radioOutside').href=u.toString();
+      document.getElementById('radioLine').hidden=false;
+    }catch(e){}
+  }
+  ov.querySelectorAll('.rdbtn').forEach(a=>a.addEventListener('click',()=>{
+    try{ localStorage.setItem(RADIO_KEY,a.getAttribute('data-key')); }catch(e){}   // 前回の局を覚える
+  }));
+  document.getElementById('radioClose').addEventListener('click',()=>{
+    radioClose(); if(typeof showHint==='function') showHint(null);              // 「閉じる」の説明の札を残さない
+  });
+  ov.addEventListener('click',e=>{ if(e.target===ov) radioClose(); });          // 窓の外の暗い所
+  document.addEventListener('keydown',radioKey);
+  radioBtnBox().classList.add('on');
+}
+/* 画面下の釦「ラジオ」（v266）。置き場所は keepSize が決めます（「使い方」と「音楽」のあいだ）。
+   もう一度押すと、窓を閉じます。 */
+function radioBtnBox(){
+  let b=document.getElementById('radioBtn');
+  if(!b){
+    b=document.createElement('button');
+    b.id='radioBtn'; b.type='button'; b.textContent='ラジオ';
+    b.title='押すと、ラジオの局の一覧を開きます。もう一度押すと閉じます';
+    b.addEventListener('mousedown',e=>e.preventDefault());   // 焦点で画面が跳ぶのを防ぐ
+    b.addEventListener('click',()=>{ radioToggle(); });
+    document.body.appendChild(b);
+  }
+  return b;
+}
+if(typeof HINTS!=='undefined') HINTS['#radioBtn']='押すと、ラジオの局の一覧を開きます。もう一度押すと閉じます';
+/* 「音楽」を押したら、先にラジオの窓を閉じます（v266）。音楽の側の関数には手を入れず、押した合図だけを先に受けます。 */
+document.addEventListener('click',e=>{
+  const b=e.target&&e.target.closest&&e.target.closest('#musicBtn');
+  if(b) radioClose();
+},true);
+/* ---------- ラジオの窓ここまで ---------- */
 
 /* 地図の上の端を、画面のいちばん上に合わせます（v223）。
    「TOP」を押したときと、縦向きのスマホで開いたときの両方で使います。 */
@@ -167971,6 +168101,7 @@ function keepSize(){
     const row = [
       (typeof geoBtnBox==='function') ? geoBtnBox() : null,   // 位置（スマホのみ）
       hb2,                                                    // 使い方
+      (typeof radioBtnBox==='function') ? radioBtnBox() : null,   // ラジオ（v266・本人の決め）
       (typeof musicBtnBox==='function') ? musicBtnBox() : null,   // 音楽（v249）
       tb2                                                     // TOP
     ].filter(Boolean);
