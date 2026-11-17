@@ -440,6 +440,7 @@ html.rptOpen body{overflow:hidden}
               background:#fff;color:#1a211c;text-decoration:none;border:2px solid var(--go);border-radius:10px;font-size:18px;font-weight:700}
 .radio .rdbtn:active{background:#D6EFE1}
 .radio .rdbtn small{display:block;font-size:13px;font-weight:400;color:#445}
+.radio .rdbtn small.rdprog{margin-top:2px;font-weight:700;color:#7A4A00}      /* 番組の案内（v267） */
 .radio .rdbtn em{font-style:normal;font-size:12px;font-weight:700;color:#7A4A00;background:#FFF8EE;border:1px solid #E08000;
                  border-radius:4px;padding:0 5px;margin-left:8px;vertical-align:2px}
 .radio .rdbtn .go{flex:none;font-size:14px;font-weight:600;color:#fff;background:var(--go);border-radius:999px;padding:5px 13px;white-space:nowrap}
@@ -706,7 +707,7 @@ input, textarea, .row .nm, .row .note, .howto, .note, .foot{
 <header class="cover">
   <button type="button" id="toReport" class="ghost toRpt">報告作成へ</button>
   <h1>徒歩軌跡 まとめ</h1>
-  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-17に保存・282本・合計 1151.79 km・住所の目安 184件。（v266）</p>
+  <p>地理院タイルに、配布経路と配布場所の目安を追記して掲載した記録です。2026-11-17に保存・282本・合計 1151.79 km・住所の目安 184件。（v267）</p>
 </header>
 
 <div id="map"></div>
@@ -167089,10 +167090,11 @@ const RPT_UI=false;
    音楽とラジオは、同時に開きません。「ラジオ」を押すと先に音楽を止め、「音楽」を押すと先にラジオの窓を閉じます。
    radiko・らじるらじるの音は別のアプリで鳴るので、このページからは止められません。 */
 const RADIO_PAGE='https://ywz2173jj-rgb.github.io/radio-test/';
+/* note は、その局の番組の案内です（v267・本人の決め）。局の釦の中に一行で出します。時刻は本人から聞いたとおり */
 const RADIO_KEY='radio_last';        // radio-test と同じ鍵。同じ置き場なら「前回」の印が通じます
 const RADIO_RADIKO=[
-  {key:'r:RSK', name:'RSKラジオ',    sub:'RSK山陽放送', url:'https://radiko.jp/#!/live/RSK'},
-  {key:'r:RNC', name:'RNCラジオ',    sub:'西日本放送',  url:'https://radiko.jp/#!/live/RNC'},
+  {key:'r:RSK', name:'RSKラジオ',    sub:'RSK山陽放送', url:'https://radiko.jp/#!/live/RSK', note:'日曜日 朝6:45〜7:00　1万年堂の朗読'},
+  {key:'r:RNC', name:'RNCラジオ',    sub:'西日本放送',  url:'https://radiko.jp/#!/live/RNC', note:'日曜日 朝6:15〜6:30　1万年堂の朗読'},
   {key:'r:top', name:'radikoを開く', sub:'局は向こうで選ぶ（いつでも使える）', url:'https://radiko.jp/'}
 ];
 const RADIO_NHK=[
@@ -167110,7 +167112,7 @@ function radioOpen(){
   if(document.getElementById('radioOv')) return;
   if(document.getElementById('musicBox') && typeof musicStop==='function') musicStop();   // 音楽とは同時に開かない（v266）
   const last=radioLast();
-  const item=s=>`<a class="rdbtn" data-key="${s.key}" href="${s.url}" rel="noopener"><span>${s.name}${last===s.key?'<em>前回</em>':''}<small>${s.sub}</small></span><span class="go">聴く</span></a>`;
+  const item=s=>`<a class="rdbtn" data-key="${s.key}" href="${s.url}" rel="noopener"><span>${s.name}${last===s.key?'<em>前回</em>':''}<small>${s.sub}</small>${s.note?`<small class="rdprog">${s.note}</small>`:''}</span><span class="go">聴く</span></a>`;
   const ov=document.createElement('div'); ov.id='radioOv'; ov.className='radio';
   ov.setAttribute('role','dialog'); ov.setAttribute('aria-label','ラジオ');
   ov.innerHTML=`<div class="rdbox">
